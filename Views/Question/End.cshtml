@@ -1,0 +1,34 @@
+@model QuestionSorterCSharp.Models.QuestionViewModel
+
+@{
+    ViewData["Title"] = "Submission Complete";
+}
+
+<div class="container">
+    <div class="question-container" id="question-container">
+        <div class="question-text">
+            <p>@Model.CurrentQuestion.QuestionText</p>
+        </div>
+
+        <div class="help-text">
+            <h3>Your Answers:</h3>
+            <ul>
+                @foreach (var answer in Model.UserAnswers)
+                {
+                    <li>
+                        <strong>@answer.QuestionText</strong>
+                        <ul>
+                            <li>@answer.Answer</li>
+                        </ul>
+                    </li>
+                }
+            </ul>
+        </div>
+
+        <div class="nav-buttons">
+            <form asp-controller="Question" asp-action="Restart" method="post">
+                <button type="submit" class="restart" style="width: 200px;">Make another report</button>
+            </form>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,229 @@
+@model QuestionSorterCSharp.Models.QuestionViewModel
+
+@{
+    ViewData["Title"] = "Question Form";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+}
+
+<div class="container">
+    <div class="question-container" id="question-container">
+        <div class="question-text">
+            <p>@Model.CurrentQuestion.QuestionText</p>
+        </div>
+
+        @if (!string.IsNullOrEmpty(Model.CurrentQuestion.HelpText))
+        {
+            <div class="help-text">
+                @Model.CurrentQuestion.HelpText
+            </div>
+        }
+
+        <form asp-controller="Question" asp-action="DisplayQuestion" method="post">
+            <input type="hidden" name="questionText" value="@Model.CurrentQuestion.QuestionText" />
+
+            <div class="answers">
+                @switch (Model.CurrentQuestion.Type)
+                {
+                    case "button":
+                    case "yn":
+                        <div class="button-container">
+                            @foreach (var option in Model.CurrentQuestion.Options)
+                            {
+                                <button type="submit" name="questionId" value="@option.Destination" class="answer-button">
+                                    @option.Text
+                                </button>
+                                <input type="hidden" name="userInput" value="@option.Text" />
+                            }
+                        </div>
+                        break;
+
+                    case "dropdown":
+                        <div class="dropdown">
+                            <select name="userInput" class="form-control">
+                                <option value="">Please select...</option>
+                                @foreach (var option in Model.CurrentQuestion.Options)
+                                {
+                                    <option value="@option.Text" data-destination="@option.Destination" selected="@(Model.PreviousAnswer == option.Text)">@option.Text</option>
+                                }
+                            </select>
+                            <input type="hidden" name="questionText" value="@Model.CurrentQuestion.QuestionText" />
+                            <button type="button" id="dropdownSubmit" class="next-button">Next</button>
+                        </div>
+                        break;
+
+                    case "text":
+                        <input type="text" name="userInput" class="text" required="@Model.CurrentQuestion.Required" value="@Model.PreviousAnswer" />
+                        <button type="submit" name="questionId" value="@Model.CurrentQuestion.Options[0].Destination" class="next-button">
+                            @Model.CurrentQuestion.Options[0].Text
+                        </button>
+                        break;
+
+                    case "textarea":
+                        <textarea name="userInput" class="textarea" required="@Model.CurrentQuestion.Required">@Model.PreviousAnswer</textarea>
+                        <button type="submit" name="questionId" value="@Model.CurrentQuestion.Options[0].Destination" class="next-button">
+                            @Model.CurrentQuestion.Options[0].Text
+                        </button>
+                        break;
+
+                    case "date":
+                        <input type="date" name="userInput" class="date" required="@Model.CurrentQuestion.Required" value="@Model.PreviousAnswer" />
+                        <button type="submit" name="questionId" value="@Model.CurrentQuestion.Options[0].Destination" class="next-button">
+                            @Model.CurrentQuestion.Options[0].Text
+                        </button>
+                        break;
+
+                    case "address":
+                                                    
+                            string street = "";
+                            string place = "";
+                            if (!string.IsNullOrEmpty(Model.PreviousAnswer))
+                            {
+                                var addressParts = Model.PreviousAnswer.Split(',');
+                                if (addressParts.Length >= 2)
+                                {
+                                    street = addressParts[0];
+                                    place = addressParts[1];
+                                }
+                            }
+                                                    
+                                                    
+                        
+                        <div class="form-group">
+                            <label for="street">Street Name</label>
+                            <input type="text" id="street" name="street" class="text" required="@Model.CurrentQuestion.Required" value="@street" />
+                        </div>
+                        <div class="form-group">
+                            <label for="place">Town/City</label>
+                            <input type="text" id="place" name="place" class="text" required="@Model.CurrentQuestion.Required" value="@place" />
+                        </div>
+                        <button type="button" id="addressSubmit" class="next-button">
+                            @Model.CurrentQuestion.Options[0].Text
+                        </button>
+                        <input type="hidden" name="userInput" id="addressInput" value="@Model.PreviousAnswer" />
+                        <input type="hidden" name="questionId" value="@Model.CurrentQuestion.Options[0].Destination" />
+                        break;
+
+                    case "location":
+                        <div id="map"></div>
+                        <input type="hidden" id="reportCoordinates" name="userInput" value="@Model.PreviousAnswer" />
+                        <button type="submit" name="questionId" value="@Model.CurrentQuestion.Options[0].Destination" class="next-button">
+                            @Model.CurrentQuestion.Options[0].Text
+                        </button>
+                        break;
+                }
+            </div>
+        </form>
+
+        @if (Model.QuestionOrder.Count > 1)
+        {
+            <div class="nav-buttons">
+                <form asp-controller="Question" asp-action="GoBack" method="post">
+                    <button type="submit" class="back">Back</button>
+                </form>
+                <form asp-controller="Question" asp-action="Restart" method="post">
+                    <button type="submit" class="restart">Restart</button>
+                </form>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script type="text/javascript">
+        document.addEventListener('DOMContentLoaded', function () {
+            // Scroll to top when page loads
+            const questionContainer = document.getElementById('question-container');
+            if (questionContainer) {
+                questionContainer.scrollTo(0, 0);
+            }
+
+            // Dropdown handling
+            const dropdownSubmit = document.getElementById('dropdownSubmit');
+            if (dropdownSubmit) {
+                dropdownSubmit.addEventListener('click', function () {
+                    const select = document.querySelector('.dropdown select');
+                    const selectedOption = select.options[select.selectedIndex];
+                    if (selectedOption && selectedOption.value) {
+                        const form = dropdownSubmit.closest('form');
+                        const questionIdInput = document.createElement('input');
+                        questionIdInput.type = 'hidden';
+                        questionIdInput.name = 'questionId';
+                        questionIdInput.value = selectedOption.dataset.destination;
+                        form.appendChild(questionIdInput);
+                        form.submit();
+                    }
+                });
+            }
+
+            // Address handling
+            const addressSubmit = document.getElementById('addressSubmit');
+            if (addressSubmit) {
+                addressSubmit.addEventListener('click', function () {
+                    const street = document.getElementById('street').value;
+                    const place = document.getElementById('place').value;
+                    document.getElementById('addressInput').value = street + ',' + place;
+                    addressSubmit.closest('form').submit();
+                });
+            }
+
+            // Map handling
+            const mapElement = document.getElementById('map');
+            if (mapElement) {
+                const map = L.map('map').setView([52.2371, -0.8944], 13);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                }).addTo(map);
+
+                let marker;
+
+                // Check if we have previous coordinates
+                const reportCoordinates = document.getElementById('reportCoordinates');
+                if (reportCoordinates && reportCoordinates.value) {
+                    // Try to extract coordinates from the value
+                    const coordMatch = reportCoordinates.value.match(/\[([-\d.]+),([-\d.]+)\]/);
+                    if (coordMatch && coordMatch.length === 3) {
+                        const lat = parseFloat(coordMatch[1]);
+                        const lng = parseFloat(coordMatch[2]);
+                        if (!isNaN(lat) && !isNaN(lng)) {
+                            // Set map view to the previous location
+                            map.setView([lat, lng], 15);
+                            // Add a marker at the previous location
+                            marker = L.marker([lat, lng]).addTo(map);
+                        }
+                    }
+                }
+
+                map.on('click', function (e) {
+                    const latitude = e.latlng.lat;
+                    const longitude = e.latlng.lng;
+
+                    if (marker) {
+                        map.removeLayer(marker);
+                    }
+
+                    marker = L.marker([latitude, longitude]).addTo(map);
+                    const reportCoordinates = document.getElementById('reportCoordinates');
+
+                    // Make a fetch request to get the address
+                    fetch(`https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`, {
+                        headers: {
+                            'User-Agent': 'reportit'
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        reportCoordinates.value = data.display_name + '</li><li>[' + latitude + ',' + longitude + ']';
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        reportCoordinates.value = '[' + latitude + ',' + longitude + ']';
+                    });
+                });
+            }
+        });
+    </script>
+}

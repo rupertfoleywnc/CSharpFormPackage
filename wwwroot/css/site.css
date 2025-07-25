@@ -1,0 +1,430 @@
+/* General Styles */
+:root {
+    --primary-color: rgb(56, 88, 137);
+    --secondary-color: #F5F5F5;
+    --text-color: #333;
+    --link-focus: #4A90E2;
+}
+
+/* Header Styles */
+header#mast {
+    background-color: var(--primary-color);
+    color: white;
+    padding: 15px 0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.header-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+.logo-link {
+    display: block;
+    width: 200px;
+    height: 50px;
+    background-image: url('https://www.westnorthants.gov.uk/themes/custom/west_northants/logo.svg');
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: left center;
+}
+
+.header-link a {
+    color: white;
+    text-decoration: none;
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+.header-link a:hover {
+    text-decoration: underline;
+}
+
+html {
+    font-size: 14px;
+    scroll-behavior: smooth;
+    position: relative;
+    min-height: 100%;
+}
+
+@media (min-width: 768px) {
+    html {
+        font-size: 16px;
+    }
+}
+
+body {
+    font-family: 'Roboto', system-ui, -apple-system, sans-serif;
+    background-color: #fff;
+    color: var(--text-color);
+    margin: 0;
+    padding: 0;
+    margin-bottom: 60px;
+}
+
+.border-top {
+    border-top: 1px solid #e5e5e5;
+}
+
+.border-bottom {
+    border-bottom: 1px solid #e5e5e5;
+}
+
+.box-shadow {
+    box-shadow: 0 .25rem .75rem rgba(0, 0, 0, .05);
+}
+
+/* Question Container Styles */
+.question-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: #f8f9fa;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+#question-container::-webkit-scrollbar {
+    width: 12px;
+}
+
+#question-container::-webkit-scrollbar-thumb {
+    background-color: var(--primary-color);
+    border-radius: 10px;
+    border: 3px solid var(--primary-color);
+}
+
+#question-container::-webkit-scrollbar-track {
+    background: var(--secondary-color);
+    border-radius: 10px;
+}
+
+.question-text {
+    margin-bottom: 20px;
+    font-size: 1.5rem;
+    font-weight: 500;
+    color: #212529;
+    width: 100%;
+    text-align: center;
+}
+
+.question-text p {
+    font-size: 24px;
+    margin-bottom: 30px;
+    color: #000;
+}
+
+.help-text {
+    margin-bottom: 20px;
+    padding: 10px;
+    background-color: #e9ecef;
+    border-radius: 5px;
+    font-style: italic;
+    text-align: center;
+    font-size: 18px;
+}
+
+/* Answer Styles */
+.answers {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    justify-content: space-evenly;
+}
+
+.answer-button, .next-button, .back, .restart, .text, .textarea, .date {
+    padding: 10px 15px;
+    border: solid 2px var(--primary-color);
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    background-color: #fff;
+    color: var(--primary-color);
+}
+
+.answer-button {
+    width: 220px;
+    height: 100px;
+    font-size: 24px;
+    margin: 25px 5px 10px;
+}
+
+.answer-button:hover, #question-container button:hover {
+    transform: scale(1.05);
+}
+
+.next-button {
+    align-self: flex-end;
+    margin: auto 10px;
+    width: 100px;
+    height: 100px;
+    font-size: 24px;
+}
+
+.text, .date {
+    width: 300px;
+    height: 100px;
+    font-size: 24px;
+    left: 0;
+    right: 0;
+    margin-left: auto;
+    margin-right: auto;
+    border-radius: 5px;
+}
+
+.textarea {
+    width: 600px;
+    height: 300px;
+    margin: 25px 5px 10px;
+}
+
+/* Form control styles */
+.form-control {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ced4da;
+    border-radius: 5px;
+    margin-bottom: 10px;
+}
+
+textarea.form-control {
+    min-height: 150px;
+}
+
+/* Navigation Buttons */
+.nav-buttons {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+    width: 95%;
+    flex-direction: row-reverse;
+}
+
+.nav-buttons button {
+    width: 120px;
+    height: 75px;
+    font-size: 24px;
+    background-color: #6c757d;
+    color: white;
+    margin-right: 10px;
+}
+
+.nav-buttons button:hover {
+    background-color: #5a6268;
+}
+
+/* Map styles */
+#map {
+    height: 400px;
+    width: 500px;
+    margin-bottom: 20px;
+    border-radius: 5px;
+    border: 1px solid #ced4da;
+}
+
+/* Dropdown styles */
+.dropdown {
+    position: relative;
+    margin-bottom: 20px;
+    margin: 0 5px;
+}
+
+.dropdown select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ced4da;
+    border-radius: 5px;
+    margin-bottom: 10px;
+}
+
+/* Input Styles */
+.input {
+    background-color: transparent;
+    color: #000000;
+    z-index: 3;
+    height: 100px;
+    width: 500px;
+    border: 2px solid var(--primary-color);
+    padding: 6px 9px;
+    font-family: 'Roboto', system-ui, -apple-system, sans-serif;
+    position: relative;
+    left: 0;
+    right: 0;
+    margin-left: auto;
+    margin-right: auto;
+    border-radius: 5px;
+    font-size: 24px;
+}
+
+.input:focus {
+    outline: none;
+}
+
+.suggestion {
+    width: 478px;
+    color: #868686;
+    height: 96.2px;
+    border: 1.5px solid transparent;
+    padding-top: 35px;
+    position: absolute;
+    z-index: 1;
+    left: 0;
+    right: 0;
+    margin-left: auto;
+    margin-right: auto;
+    border-radius: 5px;
+    font-size: 24px;
+}
+
+/* Lists in question container */
+#question-container li {
+    text-align: left;
+}
+
+/* Button container in question container */
+#question-container .button-container {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    width: 100%;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+/* Accessibility */
+.visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    border: 0;
+}
+
+/* Focus States */
+button:focus,
+a:focus {
+    outline: 3px solid var(--link-focus);
+    outline-offset: 2px;
+}
+
+/* Footer Styles */
+.footer {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    white-space: nowrap;
+    line-height: 60px;
+    background-color: #000000;
+    color: #ffffff;
+    padding: 20px 0;
+    box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.1);
+    text-align: center;
+}
+
+.footer ul {
+    padding: 0;
+    margin: 0 0 20px 0;
+    list-style: none;
+}
+
+.footer ul li {
+    display: inline;
+    margin: 0 10px;
+}
+
+.footer ul li a {
+    color: #ffffff;
+    text-decoration: none;
+}
+
+.footer ul li a:hover, .footer ul li a:focus {
+    text-decoration: underline;
+}
+
+.footer #social h4 {
+    margin-bottom: 10px;
+    font-size: 1.2em;
+    color: #ffffff;
+}
+
+.footer #social ul {
+    display: flex;
+    justify-content: center;
+    padding: 0;
+}
+
+.footer #social ul li {
+    margin: 0 10px;
+}
+
+.footer #social ul li a {
+    display: block;
+    width: 36px;
+    height: 36px;
+}
+
+.footer #social ul li a svg {
+    width: 100%;
+    height: 100%;
+    fill: #ffffff;
+}
+
+.footer #social ul li a:hover svg, .footer #social ul li a:focus svg {
+    fill: #c0c0c0;
+}
+
+.footer .footer-links {
+    margin-top: 20px;
+}
+
+.footer .footer-links a {
+    display: inline-block;
+    margin: 5px 10px;
+    color: #ffffff;
+}
+
+.footer .footer-links a:hover, .footer .footer-links a:focus {
+    color: #c0c0c0;
+}
+
+.footer a:focus {
+    outline: 2px solid #ffffff;
+    outline-offset: 2px;
+}
+
+/* Responsive Design */
+@media screen and (max-width: 600px) {
+    .footer {
+        padding: 10px 0;
+    }
+
+    .footer ul li {
+        margin: 10px 0;
+    }
+
+    #map {
+        width: 100%;
+    }
+
+    .textarea {
+        width: 100%;
+    }
+
+    .answer-button, .text, .date {
+        width: 100%;
+    }
+}

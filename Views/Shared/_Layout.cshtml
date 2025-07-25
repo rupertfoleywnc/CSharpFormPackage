@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Question Sorter</title>
+    <link rel="stylesheet" href="~/css/site.css" />
+    @await RenderSectionAsync("Styles", required: false)
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap">
+    <link rel="icon" type="image/png" sizes="16x16" href="https://www.westnorthants.gov.uk//favicon/west/favicon-16x16.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="https://www.westnorthants.gov.uk/favicon/west/favicon-32x32.png">
+</head>
+<body>
+    <header id="mast">
+        <div class="header-content">
+            <a href="/" class="logo-link">
+                <span class="visually-hidden">West Northamptonshire Council</span>
+            </a>
+            <div class="header-link">
+                <a href="/">Question Sorter</a>
+            </div>
+        </div>
+    </header>
+
+    <main role="main">
+        @RenderBody()
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-links">
+                <a href="#">Privacy Policy</a>
+                <a href="#">Terms of Service</a>
+                <a href="#">Contact Us</a>
+            </div>
+            <span>&copy; 2025 - Question Sorter</span>
+        </div>
+    </footer>
+
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>
