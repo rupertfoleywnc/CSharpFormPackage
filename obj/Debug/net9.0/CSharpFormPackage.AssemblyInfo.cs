@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("CSharpFormPackage")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+fec87684271a3d20808507f2b9b60868ce1272b7")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+48014a1f077353d9cc024f7f751a44f1059d54b9")]
 [assembly: System.Reflection.AssemblyProductAttribute("CSharpFormPackage")]
 [assembly: System.Reflection.AssemblyTitleAttribute("CSharpFormPackage")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

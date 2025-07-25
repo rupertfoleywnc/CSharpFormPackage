@@ -12,6 +12,7 @@ header#mast {
     color: white;
     padding: 15px 0;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    position: relative;
 }
 
 .header-content {
@@ -48,6 +49,7 @@ html {
     font-size: 14px;
     scroll-behavior: smooth;
     height: 100%;
+    background-color: var(--primary-color);
 }
 
 @media (min-width: 768px) {
@@ -84,6 +86,7 @@ main {
     flex: 1 0 auto;
     width: 100%;
     padding-bottom: 20px;
+    background-color: #fff;
 }
 
 /* Question Container Styles */
@@ -341,6 +344,21 @@ a:focus {
     box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.1);
     text-align: center;
     flex-shrink: 0;
+}
+
+body::after {
+    content: "";
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 50vh;
+    background-color: #000000;
+    z-index: -10;
+}
+
+body {
+    background-color: #fff;
 }
 
 .footer ul {

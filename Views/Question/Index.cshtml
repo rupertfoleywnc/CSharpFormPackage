@@ -10,123 +10,134 @@
 
 <div class="container">
     <div class="question-container" id="question-container">
-        <div class="question-text">
-            <p>@Model.CurrentQuestion.QuestionText</p>
-        </div>
-
-        @if (!string.IsNullOrEmpty(Model.CurrentQuestion.HelpText))
+        @if (Model?.CurrentQuestion == null)
         {
-            <div class="help-text">
-                @Model.CurrentQuestion.HelpText
+            <div class="question-text">
+                <p>Question not found. Please restart.</p>
             </div>
+            <form asp-controller="Question" asp-action="Restart" method="post">
+                <button type="submit" class="restart">Restart</button>
+            </form>
         }
+        else
+        {
+            <div class="question-text">
+                <p>@Model.CurrentQuestion.QuestionText</p>
+            </div>
 
-        <form asp-controller="Question" asp-action="DisplayQuestion" method="post">
-            <input type="hidden" name="questionText" value="@Model.CurrentQuestion.QuestionText" />
+            @if (!string.IsNullOrEmpty(Model.CurrentQuestion.HelpText))
+            {
+                <div class="help-text">
+                    @Model.CurrentQuestion.HelpText
+                </div>
+            }
 
-            <div class="answers">
-                @switch (Model.CurrentQuestion.Type)
-                {
-                    case "button":
-                    case "yn":
-                        <div class="button-container">
-                            @foreach (var option in Model.CurrentQuestion.Options)
-                            {
-                                <button type="submit" name="questionId" value="@option.Destination" class="answer-button">
-                                    @option.Text
-                                </button>
-                                <input type="hidden" name="userInput" value="@option.Text" />
-                            }
-                        </div>
-                        break;
+            <form asp-controller="Question" asp-action="DisplayQuestion" method="post">
+                <input type="hidden" name="questionText" value="@Model.CurrentQuestion.QuestionText" />
 
-                    case "dropdown":
-                        <div class="dropdown">
-                            <select name="userInput" class="form-control">
-                                <option value="">Please select...</option>
+                <div class="answers">
+                    @switch (Model.CurrentQuestion.Type)
+                    {
+                        case "button":
+                        case "yn":
+                            <div class="button-container">
                                 @foreach (var option in Model.CurrentQuestion.Options)
                                 {
-                                    <option value="@option.Text" data-destination="@option.Destination" selected="@(Model.PreviousAnswer == option.Text)">@option.Text</option>
+                                    <button type="submit" name="questionId" value="@option.Destination" class="answer-button">
+                                        @option.Text
+                                    </button>
+                                    <input type="hidden" name="userInput" value="@option.Text" />
                                 }
-                            </select>
-                            <input type="hidden" name="questionText" value="@Model.CurrentQuestion.QuestionText" />
-                            <button type="button" id="dropdownSubmit" class="next-button">Next</button>
-                        </div>
-                        break;
+                            </div>
+                            break;
 
-                    case "text":
-                        <input type="text" name="userInput" class="text" required="@Model.CurrentQuestion.Required" value="@Model.PreviousAnswer" />
-                        <button type="submit" name="questionId" value="@Model.CurrentQuestion.Options[0].Destination" class="next-button">
-                            @Model.CurrentQuestion.Options[0].Text
-                        </button>
-                        break;
+                        case "dropdown":
+                            <div class="dropdown">
+                                <select name="userInput" class="form-control">
+                                    <option value="">Please select...</option>
+                                    @foreach (var option in Model.CurrentQuestion.Options)
+                                    {
+                                        <option value="@option.Text" data-destination="@option.Destination" selected="@(Model.PreviousAnswer == option.Text)">@option.Text</option>
+                                    }
+                                </select>
+                                <input type="hidden" name="questionText" value="@Model.CurrentQuestion.QuestionText" />
+                                <button type="button" id="dropdownSubmit" class="next-button">Next</button>
+                            </div>
+                            break;
 
-                    case "textarea":
-                        <textarea name="userInput" class="textarea" required="@Model.CurrentQuestion.Required">@Model.PreviousAnswer</textarea>
-                        <button type="submit" name="questionId" value="@Model.CurrentQuestion.Options[0].Destination" class="next-button">
-                            @Model.CurrentQuestion.Options[0].Text
-                        </button>
-                        break;
+                        case "text":
+                            <input type="text" name="userInput" class="text" required="@Model.CurrentQuestion.Required" value="@Model.PreviousAnswer" />
+                            <button type="submit" name="questionId" value="@Model.CurrentQuestion.Options[0].Destination" class="next-button">
+                                @Model.CurrentQuestion.Options[0].Text
+                            </button>
+                            break;
 
-                    case "date":
-                        <input type="date" name="userInput" class="date" required="@Model.CurrentQuestion.Required" value="@Model.PreviousAnswer" />
-                        <button type="submit" name="questionId" value="@Model.CurrentQuestion.Options[0].Destination" class="next-button">
-                            @Model.CurrentQuestion.Options[0].Text
-                        </button>
-                        break;
+                        case "textarea":
+                            <textarea name="userInput" class="textarea" required="@Model.CurrentQuestion.Required">@Model.PreviousAnswer</textarea>
+                            <button type="submit" name="questionId" value="@Model.CurrentQuestion.Options[0].Destination" class="next-button">
+                                @Model.CurrentQuestion.Options[0].Text
+                            </button>
+                            break;
 
-                    case "address":
-                                                    
-                            string street = "";
-                            string place = "";
-                            if (!string.IsNullOrEmpty(Model.PreviousAnswer))
+                        case "date":
+                            <input type="date" name="userInput" class="date" required="@Model.CurrentQuestion.Required" value="@Model.PreviousAnswer" />
+                            <button type="submit" name="questionId" value="@Model.CurrentQuestion.Options[0].Destination" class="next-button">
+                                @Model.CurrentQuestion.Options[0].Text
+                            </button>
+                            break;
+
+                        case "address":
                             {
-                                var addressParts = Model.PreviousAnswer.Split(',');
-                                if (addressParts.Length >= 2)
+                                string street = "";
+                                string place = "";
+                                if (!string.IsNullOrEmpty(Model.PreviousAnswer))
                                 {
-                                    street = addressParts[0];
-                                    place = addressParts[1];
+                                    var addressParts = Model.PreviousAnswer.Split(',');
+                                    if (addressParts.Length >= 2)
+                                    {
+                                        street = addressParts[0];
+                                        place = addressParts[1];
+                                    }
                                 }
+
+                                <div class="form-group">
+                                    <label for="street">Street Name</label>
+                                    <input type="text" id="street" name="street" class="text" required="@Model.CurrentQuestion.Required" value="@street" />
+                                </div>
+                                <div class="form-group">
+                                    <label for="place">Town/City</label>
+                                    <input type="text" id="place" name="place" class="text" required="@Model.CurrentQuestion.Required" value="@place" />
+                                </div>
+                                <button type="button" id="addressSubmit" class="next-button">
+                                    @Model.CurrentQuestion.Options[0].Text
+                                </button>
+                                <input type="hidden" name="userInput" id="addressInput" value="@Model.PreviousAnswer" />
+                                <input type="hidden" name="questionId" value="@Model.CurrentQuestion.Options[0].Destination" />
                             }
-                                                    
-                                                    
-                        
-                        <div class="form-group">
-                            <label for="street">Street Name</label>
-                            <input type="text" id="street" name="street" class="text" required="@Model.CurrentQuestion.Required" value="@street" />
-                        </div>
-                        <div class="form-group">
-                            <label for="place">Town/City</label>
-                            <input type="text" id="place" name="place" class="text" required="@Model.CurrentQuestion.Required" value="@place" />
-                        </div>
-                        <button type="button" id="addressSubmit" class="next-button">
-                            @Model.CurrentQuestion.Options[0].Text
-                        </button>
-                        <input type="hidden" name="userInput" id="addressInput" value="@Model.PreviousAnswer" />
-                        <input type="hidden" name="questionId" value="@Model.CurrentQuestion.Options[0].Destination" />
-                        break;
+                            break;
 
-                    case "location":
-                        <div id="map"></div>
-                        <input type="hidden" id="reportCoordinates" name="userInput" value="@Model.PreviousAnswer" />
-                        <button type="submit" name="questionId" value="@Model.CurrentQuestion.Options[0].Destination" class="next-button">
-                            @Model.CurrentQuestion.Options[0].Text
-                        </button>
-                        break;
-                }
-            </div>
-        </form>
+                        case "location":
+                            <div id="map"></div>
+                            <input type="hidden" id="reportCoordinates" name="userInput" value="@Model.PreviousAnswer" />
+                            <button type="submit" name="questionId" value="@Model.CurrentQuestion.Options[0].Destination" class="next-button">
+                                @Model.CurrentQuestion.Options[0].Text
+                            </button>
+                            break;
+                    }
+                </div>
+            </form>
 
-        @if (Model.QuestionOrder.Count > 1)
-        {
-            <div class="nav-buttons">
-                <form asp-controller="Question" asp-action="GoBack" method="post">
-                    <button type="submit" class="back">Back</button>
-                </form>
-                <form asp-controller="Question" asp-action="Restart" method="post">
-                    <button type="submit" class="restart">Restart</button>
-                </form>
-            </div>
+            @if (Model.QuestionOrder != null && Model.QuestionOrder.Count > 1)
+            {
+                <div class="nav-buttons">
+                    <form asp-controller="Question" asp-action="GoBack" method="post">
+                        <button type="submit" class="back">Back</button>
+                    </form>
+                    <form asp-controller="Question" asp-action="Restart" method="post">
+                        <button type="submit" class="restart">Restart</button>
+                    </form>
+                </div>
+            }
         }
     </div>
 </div>
@@ -184,7 +195,7 @@
                 const reportCoordinates = document.getElementById('reportCoordinates');
                 if (reportCoordinates && reportCoordinates.value) {
                     // Try to extract coordinates from the value
-                    const coordMatch = reportCoordinates.value.match(/\[([-\d.]+),([-\d.]+)\]/);
+                    const coordMatch = reportCoordinates.value.match(/\[([\-\d.]+),([\-\d.]+)\]/);
                     if (coordMatch && coordMatch.length === 3) {
                         const lat = parseFloat(coordMatch[1]);
                         const lng = parseFloat(coordMatch[2]);

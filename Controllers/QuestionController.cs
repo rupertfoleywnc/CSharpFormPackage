@@ -23,13 +23,22 @@ namespace CSharpFormPackage.Controllers
                 var firstQuestion = _questionService.GetQuestionById(0);
                 if (firstQuestion == null)
                 {
-                    return View("Error");
+                    // Instead of returning Error view, return the Index view with a null CurrentQuestion
+                    // but initialize other properties to prevent NullReferenceException
+                    var errorViewModel = new QuestionViewModel
+                    {
+                        CurrentQuestion = null,
+                        QuestionOrder = new List<int>(),
+                        UserAnswers = new List<UserAnswer>()
+                    };
+                    return View(errorViewModel);
                 }
 
                 var viewModel = new QuestionViewModel
                 {
                     CurrentQuestion = firstQuestion,
-                    QuestionOrder = new List<int> { 0 }
+                    QuestionOrder = new List<int> { 0 },
+                    UserAnswers = new List<UserAnswer>()
                 };
 
                 // Store initial state in session
@@ -48,7 +57,10 @@ namespace CSharpFormPackage.Controllers
         public IActionResult DisplayQuestion(int questionId, string? userInput = null, string? questionText = null)
         {
             // Retrieve previous answers and question order from TempData
-            if (TempData["UserAnswers"] is not string userAnswersJson || TempData["QuestionOrder"] is not string questionOrderJson)
+            var userAnswersJson = TempData["UserAnswers"] as string;
+            var questionOrderJson = TempData["QuestionOrder"] as string;
+
+            if (string.IsNullOrEmpty(userAnswersJson) || string.IsNullOrEmpty(questionOrderJson))
             {
                 return RedirectToAction("Index");
             }
@@ -79,6 +91,18 @@ namespace CSharpFormPackage.Controllers
 
             // Get the current question
             var question = _questionService.GetQuestionById(questionId);
+
+            // Handle case where question is null
+            if (question == null)
+            {
+                var errorViewModel = new QuestionViewModel
+                {
+                    CurrentQuestion = null,
+                    QuestionOrder = questionOrder,
+                    UserAnswers = userAnswers
+                };
+                return View("Index", errorViewModel);
+            }
 
             // Update question order if it's a new question
             if (!questionOrder.Contains(questionId))
