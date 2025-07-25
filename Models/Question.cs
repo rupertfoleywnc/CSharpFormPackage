@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace QuestionSorterCSharp.Models
+namespace CSharpFormPackage.Models
 {
     public class Question
     {

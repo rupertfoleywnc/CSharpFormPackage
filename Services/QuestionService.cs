@@ -5,9 +5,9 @@ using System.Linq;
 using System.Text.Json;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Logging;
-using QuestionSorterCSharp.Models;
+using CSharpFormPackage.Models;
 
-namespace QuestionSorterCSharp.Services
+namespace CSharpFormPackage.Services
 {
     public interface IQuestionService
     {

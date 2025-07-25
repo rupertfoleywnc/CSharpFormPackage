@@ -829,11 +829,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\Rupert Foley\\OneDrive - West Northamptonshire Council\\Documents\\Code\\Mad Ideas\\ReportIt\\questionSorterCSharp\\QuestionSorterCSharp.csproj",
-      "projectName": "QuestionSorterCSharp",
-      "projectPath": "C:\\Users\\Rupert Foley\\OneDrive - West Northamptonshire Council\\Documents\\Code\\Mad Ideas\\ReportIt\\questionSorterCSharp\\QuestionSorterCSharp.csproj",
+      "projectUniqueName": "C:\\Users\\Rupert Foley\\OneDrive - West Northamptonshire Council\\Documents\\Code\\Mad Ideas\\CsharpFormBuilder\\CSharpFormPackage.csproj",
+      "projectName": "CSharpFormPackage",
+      "projectPath": "C:\\Users\\Rupert Foley\\OneDrive - West Northamptonshire Council\\Documents\\Code\\Mad Ideas\\CsharpFormBuilder\\CSharpFormPackage.csproj",
       "packagesPath": "C:\\Users\\Rupert Foley\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\Rupert Foley\\OneDrive - West Northamptonshire Council\\Documents\\Code\\Mad Ideas\\ReportIt\\questionSorterCSharp\\obj\\",
+      "outputPath": "C:\\Users\\Rupert Foley\\OneDrive - West Northamptonshire Council\\Documents\\Code\\Mad Ideas\\CsharpFormBuilder\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "C:\\Users\\Rupert Foley\\AppData\\Roaming\\NuGet\\NuGet.Config"

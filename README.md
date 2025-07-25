@@ -1,6 +1,6 @@
-# Question Sorter C# MVC Application
+# CSharpFormPackage MVC Application
 
-This is a C# ASP.NET Core MVC implementation of the JavaScript Question Sorter. It processes a series of questions and responses based on JSON data, similar to the original JavaScript implementation.
+This is a C# ASP.NET Core MVC form processing package. It processes a series of questions and responses based on JSON data, providing a flexible framework for creating dynamic forms.
 
 ## Features
 

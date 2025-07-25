@@ -1,4 +1,4 @@
-namespace QuestionSorterCSharp.Models
+namespace CSharpFormPackage.Models
 {
     public class UserAnswer
     {
