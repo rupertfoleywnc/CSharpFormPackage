@@ -62,7 +62,7 @@ namespace CsharpFormBuilder.Controllers
 
         public IActionResult List()
         {
-            var dataPath = Path.Combine("wwwroot", "data");
+            var dataPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "data");
             var forms = new List<FormInfo>();
             
             if (Directory.Exists(dataPath))
@@ -86,6 +86,24 @@ namespace CsharpFormBuilder.Controllers
             }
             
             return View(forms);
+        }
+
+        [HttpPost]
+        public IActionResult DeleteForm(string fileName)
+        {
+            try
+            {
+                var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "data", fileName);
+                if (System.IO.File.Exists(filePath))
+                {
+                    System.IO.File.Delete(filePath);
+                }
+                return RedirectToAction("List");
+            }
+            catch
+            {
+                return RedirectToAction("List");
+            }
         }
     }
 

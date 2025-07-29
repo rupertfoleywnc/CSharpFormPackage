@@ -13,6 +13,7 @@ namespace CSharpFormPackage.Services
     {
         Question GetQuestionById(int id);
         List<Question> GetAllQuestions();
+        void LoadFormFromFile(string fileName);
     }
 
     public class QuestionService : IQuestionService
@@ -38,13 +39,39 @@ namespace CSharpFormPackage.Services
             return _questions;
         }
 
+        public void LoadFormFromFile(string fileName)
+        {
+            try
+            {
+                string webRootPath = _webHostEnvironment.WebRootPath;
+                string jsonFilePath = Path.Combine(webRootPath, "data", fileName);
+                
+                if (File.Exists(jsonFilePath))
+                {
+                    string jsonContent = File.ReadAllText(jsonFilePath);
+                    var options = new JsonSerializerOptions
+                    {
+                        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                        PropertyNameCaseInsensitive = true
+                    };
+                    var questionData = JsonSerializer.Deserialize<QuestionData>(jsonContent, options);
+                    _questions.Clear();
+                    _questions.AddRange(questionData?.Questions ?? new List<Question>());
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error loading form from file");
+            }
+        }
+
         private List<Question> LoadQuestions()
         {
             try
             {
                 // Use WebHostEnvironment to get the wwwroot path
                 string webRootPath = _webHostEnvironment.WebRootPath;
-                string jsonFilePath = Path.Combine(webRootPath, "data", "questionData.json");
+                string jsonFilePath = Path.Combine(webRootPath, "data", "reportItFormFlow.json");
 
                 if (!File.Exists(jsonFilePath))
                 {

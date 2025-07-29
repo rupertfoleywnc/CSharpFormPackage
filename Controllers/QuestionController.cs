@@ -16,10 +16,15 @@ namespace CSharpFormPackage.Controllers
             _questionService = questionService;
         }
 
-        public IActionResult Index()
+        public IActionResult Index(string form = null)
         {
             try
             {
+                if (!string.IsNullOrEmpty(form))
+                {
+                    _questionService.LoadFormFromFile(form + "FormFlow.json");
+                }
+                
                 var firstQuestion = _questionService.GetQuestionById(0);
                 if (firstQuestion == null)
                 {

@@ -170,11 +170,12 @@
             const form = document.getElementById('property-form');
             let optionsHtml = '';
             
-            question.options.forEach((option, index) => {
+            const options = question.options || question.Options || [];
+            options.forEach((option, index) => {
                 optionsHtml += `
                     <div class="option-item">
-                        <input type="text" value="${option.text}" onchange="updateOption(${index}, 'text', this.value)">
-                        <input type="number" value="${option.destination || ''}" placeholder="Destination ID" onchange="updateOption(${index}, 'destination', this.value)">
+                        <input type="text" value="${option.text || option.Text || ''}" onchange="updateOption(${index}, 'text', this.value)">
+                        <input type="number" value="${option.destination || option.Destination || ''}" placeholder="Destination ID" onchange="updateOption(${index}, 'destination', this.value)">
                         <button onclick="removeOption(${index})">Remove</button>
                     </div>
                 `;
@@ -183,32 +184,32 @@
             form.innerHTML = `
                 <div class="form-group">
                     <label>Question ID</label>
-                    <input type="number" value="${question.id}" onchange="updateQuestion('id', this.value)">
+                    <input type="number" value="${question.id || question.Id}" onchange="updateQuestion('id', this.value)">
                 </div>
                 <div class="form-group">
                     <label>Question Text</label>
-                    <textarea onchange="updateQuestion('questionText', this.value)">${question.questionText}</textarea>
+                    <textarea onchange="updateQuestion('questionText', this.value)">${question.questionText || question.QuestionText || ''}</textarea>
                 </div>
                 <div class="form-group">
                     <label>Type</label>
                     <select onchange="updateQuestion('type', this.value)">
-                        <option value="button" ${question.type === 'button' ? 'selected' : ''}>Button</option>
-                        <option value="text" ${question.type === 'text' ? 'selected' : ''}>Text</option>
-                        <option value="textarea" ${question.type === 'textarea' ? 'selected' : ''}>Textarea</option>
-                        <option value="date" ${question.type === 'date' ? 'selected' : ''}>Date</option>
-                        <option value="yn" ${question.type === 'yn' ? 'selected' : ''}>Yes/No</option>
-                        <option value="address" ${question.type === 'address' ? 'selected' : ''}>Address</option>
-                        <option value="location" ${question.type === 'location' ? 'selected' : ''}>Location</option>
-                        <option value="end" ${question.type === 'end' ? 'selected' : ''}>End</option>
+                        <option value="button" ${(question.type || question.Type) === 'button' ? 'selected' : ''}>Button</option>
+                        <option value="text" ${(question.type || question.Type) === 'text' ? 'selected' : ''}>Text</option>
+                        <option value="textarea" ${(question.type || question.Type) === 'textarea' ? 'selected' : ''}>Textarea</option>
+                        <option value="date" ${(question.type || question.Type) === 'date' ? 'selected' : ''}>Date</option>
+                        <option value="yn" ${(question.type || question.Type) === 'yn' ? 'selected' : ''}>Yes/No</option>
+                        <option value="address" ${(question.type || question.Type) === 'address' ? 'selected' : ''}>Address</option>
+                        <option value="location" ${(question.type || question.Type) === 'location' ? 'selected' : ''}>Location</option>
+                        <option value="end" ${(question.type || question.Type) === 'end' ? 'selected' : ''}>End</option>
                     </select>
                 </div>
                 <div class="form-group">
                     <label>Required</label>
-                    <input type="checkbox" ${question.required ? 'checked' : ''} onchange="updateQuestion('required', this.checked)">
+                    <input type="checkbox" ${(question.required || question.Required) ? 'checked' : ''} onchange="updateQuestion('required', this.checked)">
                 </div>
                 <div class="form-group">
                     <label>Help Text</label>
-                    <textarea onchange="updateQuestion('helpText', this.value)">${question.helpText || ''}</textarea>
+                    <textarea onchange="updateQuestion('helpText', this.value)">${question.helpText || question.HelpText || ''}</textarea>
                 </div>
                 <div class="form-group">
                     <label>Options</label>
@@ -464,6 +465,63 @@
                 document.getElementById('property-form').innerHTML = '<p>Select a question to edit its properties</p>';
             }
         }
+
+        // Auto-load form if specified in localStorage
+        window.addEventListener('load', () => {
+            const loadForm = localStorage.getItem('loadForm');
+            if (loadForm) {
+                localStorage.removeItem('loadForm');
+                fetch(`/data/${loadForm}FormFlow.json`)
+                .then(response => response.json())
+                .then(data => {
+                    questions = data.questions || data.Questions || [];
+                    if (questions.some(q => (!q.x && !q.X) && (!q.y && !q.Y))) {
+                        const positioned = new Set();
+                        const levelY = {};
+                        
+                        function positionFlow(qId, level = 0) {
+                            const q = questions.find(qu => (qu.id || qu.Id) == qId);
+                            if (!q || positioned.has(qId)) return;
+                            
+                            if (!levelY[level]) levelY[level] = 30;
+                            
+                            q.x = q.x || q.X || (30 + level * 220);
+                            q.y = q.y || q.Y || levelY[level];
+                            positioned.add(qId);
+                            levelY[level] += 150;
+                            
+                            const options = q.options || q.Options;
+                            if (options) {
+                                options.forEach(opt => {
+                                    const dest = opt.destination || opt.Destination;
+                                    if (dest) positionFlow(dest, level + 1);
+                                });
+                            }
+                        }
+                        
+                        const startQ = questions.reduce((min, q) => (q.id || q.Id) < (min.id || min.Id) ? q : min);
+                        positionFlow(startQ.id || startQ.Id);
+                        
+                        let remainingX = 30, remainingY = 30;
+                        questions.forEach((q) => {
+                            const qId = q.id || q.Id;
+                            if (!positioned.has(qId)) {
+                                q.x = q.x || q.X || remainingX;
+                                q.y = q.y || q.Y || remainingY;
+                                remainingY += 150;
+                                if (remainingY > 500) {
+                                    remainingY = 30;
+                                    remainingX += 220;
+                                }
+                            }
+                        });
+                    }
+                    nextId = questions.length > 0 ? Math.max(...questions.map(q => q.id || q.Id), 0) + 1 : 0;
+                    refreshCanvas();
+                })
+                .catch(error => console.error('Error loading form:', error));
+            }
+        });
 
         function loadFromServer() {
             fetch('/FormEditor/GetFormList')

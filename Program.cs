@@ -43,6 +43,6 @@ app.UseSession();
 
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=FormEditor}/{action=Index}/{id?}");
+    pattern: "{controller=FormEditor}/{action=List}/{id?}");
 
 app.Run();
