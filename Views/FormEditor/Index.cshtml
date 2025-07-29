@@ -92,6 +92,8 @@
         let draggedElement = null;
         let connections = [];
         let formEmail = '';
+        let emailSubject = '';
+        let emailBody = '';
 
         // Drag and drop functionality
         document.querySelectorAll('.tool-item').forEach(item => {
@@ -228,9 +230,17 @@
                 <h4>Form Settings</h4>
                 <div class="form-group">
                     <label>Email Address (for form submissions)</label>
-                    <input type="email" id="formEmail" placeholder="email@example.com">
-                    <button class="btn-primary" onclick="saveFormEmail()">Save Email</button>
+                    <input type="email" id="formEmail" value="${formEmail}" placeholder="email@example.com">
                 </div>
+                <div class="form-group">
+                    <label>Email Subject</label>
+                    <input type="text" id="emailSubject" value="${emailSubject}" placeholder="Form Submission">
+                </div>
+                <div class="form-group">
+                    <label>Email Body</label>
+                    <textarea id="emailBody" placeholder="Form responses will be appended below...">${emailBody}</textarea>
+                </div>
+                <button class="btn-primary" onclick="saveFormSettings()">Save Settings</button>
                 <button class="btn-primary" onclick="clearFormSettings()">Back to Questions</button>
             `;
         }
@@ -392,7 +402,9 @@
                 const formData = {
                     title: title.trim(),
                     questions: questions,
-                    emailTo: formEmail || ''
+                    emailTo: formEmail || '',
+                    emailSubject: emailSubject || '',
+                    emailBody: emailBody || ''
                 };
                 console.log('Form data to save:', formData);
                 
@@ -483,10 +495,12 @@
             input.click();
         }
 
-        function saveFormEmail() {
+        function saveFormSettings() {
             formEmail = document.getElementById('formEmail').value;
+            emailSubject = document.getElementById('emailSubject').value;
+            emailBody = document.getElementById('emailBody').value;
             // TODO: Validate email format before saving
-            alert('Email saved: ' + formEmail);
+            alert('Email settings saved');
         }
 
         function clearFormSettings() {
@@ -499,6 +513,8 @@
                 selectedQuestion = null;
                 nextId = 0;
                 formEmail = '';
+                emailSubject = '';
+                emailBody = '';
                 refreshCanvas();
                 document.getElementById('property-form').innerHTML = '<p>Select a question to edit its properties</p>';
             }
