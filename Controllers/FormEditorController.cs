@@ -14,7 +14,12 @@ namespace CsharpFormBuilder.Controllers
         {
             try
             {
-                var fileName = formData.Title.Replace(" ", "") + "FormFlow.json";
+                if (formData == null || string.IsNullOrEmpty(formData.title))
+                {
+                    return Json(new { success = false, error = "Form data or title is missing" });
+                }
+                
+                var fileName = formData.title.Replace(" ", "") + "FormFlow.json";
                 var filePath = Path.Combine("wwwroot", "data", fileName);
                 
                 Directory.CreateDirectory(Path.GetDirectoryName(filePath));
@@ -71,9 +76,9 @@ namespace CsharpFormBuilder.Controllers
                         var formData = System.Text.Json.JsonSerializer.Deserialize<FormData>(json);
                         forms.Add(new FormInfo 
                         { 
-                            Title = formData.Title, 
+                            Title = formData.title, 
                             FileName = Path.GetFileName(file),
-                            QuestionCount = formData.Questions?.Count ?? 0
+                            QuestionCount = formData.questions?.Count ?? 0
                         });
                     }
                     catch { }
@@ -86,8 +91,8 @@ namespace CsharpFormBuilder.Controllers
 
     public class FormData
     {
-        public string Title { get; set; }
-        public List<Question> Questions { get; set; }
+        public string title { get; set; }
+        public List<Question> questions { get; set; }
     }
 
     public class Question

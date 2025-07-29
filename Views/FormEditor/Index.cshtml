@@ -144,12 +144,12 @@
         function renderQuestion(question) {
             const node = document.createElement('div');
             node.className = 'question-node';
-            node.style.left = question.x + 'px';
-            node.style.top = question.y + 'px';
+            node.style.left = (question.x || question.X || 0) + 'px';
+            node.style.top = (question.y || question.Y || 0) + 'px';
             node.innerHTML = `
-                <h4>ID: ${question.id}</h4>
-                <p><strong>${question.type}</strong></p>
-                <p>${question.questionText}</p>
+                <h4>ID: ${question.id || question.Id}</h4>
+                <p><strong>${question.type || question.Type}</strong></p>
+                <p>${question.questionText || question.QuestionText}</p>
                 <div class="connection-point"></div>
             `;
             
@@ -298,16 +298,18 @@
             
             if (questions && questions.length > 0) {
                 questions.forEach(question => {
-                    if (question.options) {
-                        question.options.forEach(option => {
-                            if (option.destination) {
-                                const target = questions.find(q => q.id == option.destination);
+                    const options = question.options || question.Options;
+                    if (options) {
+                        options.forEach(option => {
+                            const dest = option.destination || option.Destination;
+                            if (dest) {
+                                const target = questions.find(q => (q.id || q.Id) == dest);
                                 if (target) {
                                     const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-                                    line.setAttribute('x1', question.x + 200);
-                                    line.setAttribute('y1', question.y + 50);
-                                    line.setAttribute('x2', target.x);
-                                    line.setAttribute('y2', target.y + 50);
+                                    line.setAttribute('x1', (question.x || question.X) + 200);
+                                    line.setAttribute('y1', (question.y || question.Y) + 50);
+                                    line.setAttribute('x2', target.x || target.X);
+                                    line.setAttribute('y2', (target.y || target.Y) + 50);
                                     line.setAttribute('stroke', 'var(--primary-color)');
                                     line.setAttribute('stroke-width', '2');
                                     line.setAttribute('marker-end', 'url(#arrowhead)');
@@ -339,9 +341,9 @@
 
         function drag(e) {
             if (isDragging && selectedQuestion) {
-                const canvasRect = document.getElementById('canvas').getBoundingClientRect();
-                selectedQuestion.x = e.clientX - canvasRect.left - dragOffset.x;
-                selectedQuestion.y = e.clientY - canvasRect.top - dragOffset.y;
+                const canvas = document.getElementById('canvas');
+                selectedQuestion.x = e.clientX - canvas.offsetLeft - dragOffset.x + canvas.scrollLeft;
+                selectedQuestion.y = e.clientY - canvas.offsetTop - dragOffset.y + canvas.scrollTop;
                 
                 const node = document.querySelector('.question-node.selected');
                 if (node) {
@@ -399,20 +401,22 @@
                     reader.onload = (e) => {
                         try {
                             const data = JSON.parse(e.target.result);
-                            questions = data.questions || [];
+                            questions = data.questions || data.Questions || [];
                             // Position questions in flow order
-                            if (questions.some(q => !q.x && !q.y)) {
+                            if (questions.some(q => (!q.x && !q.X) && (!q.y && !q.Y))) {
                                 const positioned = new Set();
-                                let x = 50, y = 50;
+                                const levelY = {};
                                 
                                 function positionFlow(qId, level = 0) {
                                     const q = questions.find(qu => qu.id == qId);
                                     if (!q || positioned.has(qId)) return;
                                     
-                                    q.x = 50 + level * 300;
-                                    q.y = y;
+                                    if (!levelY[level]) levelY[level] = 30;
+                                    
+                                    q.x = 30 + level * 250;
+                                    q.y = levelY[level];
                                     positioned.add(qId);
-                                    y += 150;
+                                    levelY[level] += 150;
                                     
                                     if (q.options) {
                                         q.options.forEach(opt => {
@@ -425,11 +429,17 @@
                                 const startQ = questions.reduce((min, q) => q.id < min.id ? q : min);
                                 positionFlow(startQ.id);
                                 
-                                // Position any remaining questions
-                                questions.forEach((q, i) => {
+                                // Position any remaining questions in a compact grid
+                                let remainingX = 30, remainingY = 30;
+                                questions.forEach((q) => {
                                     if (!positioned.has(q.id)) {
-                                        q.x = 50 + (i % 3) * 300;
-                                        q.y = y + Math.floor(i / 3) * 150;
+                                        q.x = remainingX;
+                                        q.y = remainingY;
+                                        remainingY += 150;
+                                        if (remainingY > 500) {
+                                            remainingY = 30;
+                                            remainingX += 250;
+                                        }
                                     }
                                 });
                             }
@@ -471,20 +481,22 @@
                             return response.json();
                         })
                         .then(data => {
-                            questions = data.questions || [];
+                            questions = data.questions || data.Questions || [];
                             // Position questions in flow order
-                            if (questions.some(q => !q.x && !q.y)) {
+                            if (questions.some(q => (!q.x && !q.X) && (!q.y && !q.Y))) {
                                 const positioned = new Set();
-                                let x = 50, y = 50;
+                                const levelY = {};
                                 
                                 function positionFlow(qId, level = 0) {
                                     const q = questions.find(qu => qu.id == qId);
                                     if (!q || positioned.has(qId)) return;
                                     
-                                    q.x = 50 + level * 300;
-                                    q.y = y;
+                                    if (!levelY[level]) levelY[level] = 30;
+                                    
+                                    q.x = 30 + level * 250;
+                                    q.y = levelY[level];
                                     positioned.add(qId);
-                                    y += 150;
+                                    levelY[level] += 150;
                                     
                                     if (q.options) {
                                         q.options.forEach(opt => {
@@ -497,11 +509,17 @@
                                 const startQ = questions.reduce((min, q) => q.id < min.id ? q : min);
                                 positionFlow(startQ.id);
                                 
-                                // Position any remaining questions
-                                questions.forEach((q, i) => {
+                                // Position any remaining questions in a compact grid
+                                let remainingX = 30, remainingY = 30;
+                                questions.forEach((q) => {
                                     if (!positioned.has(q.id)) {
-                                        q.x = 50 + (i % 3) * 300;
-                                        q.y = y + Math.floor(i / 3) * 150;
+                                        q.x = remainingX;
+                                        q.y = remainingY;
+                                        remainingY += 150;
+                                        if (remainingY > 500) {
+                                            remainingY = 30;
+                                            remainingX += 250;
+                                        }
                                     }
                                 });
                             }
