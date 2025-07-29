@@ -49,6 +49,10 @@ namespace CSharpFormPackage.Services
                 if (File.Exists(jsonFilePath))
                 {
                     string jsonContent = File.ReadAllText(jsonFilePath);
+                    var formData = JsonSerializer.Deserialize<dynamic>(jsonContent);
+                    
+                    // Theme colors are handled in the controller
+                    
                     var options = new JsonSerializerOptions
                     {
                         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,

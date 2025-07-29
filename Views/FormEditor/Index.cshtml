@@ -94,6 +94,9 @@
         let formEmail = '';
         let emailSubject = '';
         let emailBody = '';
+        let primaryColor = '#007bff';
+        let backgroundColor = '#ffffff';
+        let textColor = '#333333';
 
         // Drag and drop functionality
         document.querySelectorAll('.tool-item').forEach(item => {
@@ -239,6 +242,19 @@
                 <div class="form-group">
                     <label>Email Body</label>
                     <textarea id="emailBody" placeholder="Form responses will be appended below...">${emailBody}</textarea>
+                </div>
+                <h4>Theme Settings</h4>
+                <div class="form-group">
+                    <label>Primary Color</label>
+                    <input type="color" id="primaryColor" value="${primaryColor}">
+                </div>
+                <div class="form-group">
+                    <label>Background Color</label>
+                    <input type="color" id="backgroundColor" value="${backgroundColor}">
+                </div>
+                <div class="form-group">
+                    <label>Text Color</label>
+                    <input type="color" id="textColor" value="${textColor}">
                 </div>
                 <button class="btn-primary" onclick="saveFormSettings()">Save Settings</button>
                 <button class="btn-primary" onclick="clearFormSettings()">Back to Questions</button>
@@ -404,7 +420,10 @@
                     questions: questions,
                     emailTo: formEmail || '',
                     emailSubject: emailSubject || '',
-                    emailBody: emailBody || ''
+                    emailBody: emailBody || '',
+                    primaryColor: primaryColor,
+                    backgroundColor: backgroundColor,
+                    textColor: textColor
                 };
                 console.log('Form data to save:', formData);
                 
@@ -447,6 +466,12 @@
                             formEmail = data.emailTo || '';
                             emailSubject = data.emailSubject || '';
                             emailBody = data.emailBody || '';
+                            
+                            // Load theme settings
+                            primaryColor = data.primaryColor || '#007bff';
+                            backgroundColor = data.backgroundColor || '#ffffff';
+                            textColor = data.textColor || '#333333';
+                            applyTheme();
                             
                             // Position questions in flow order
                             if (questions.some(q => (!q.x && !q.X) && (!q.y && !q.Y))) {
@@ -505,8 +530,21 @@
             formEmail = document.getElementById('formEmail').value;
             emailSubject = document.getElementById('emailSubject').value;
             emailBody = document.getElementById('emailBody').value;
+            primaryColor = document.getElementById('primaryColor').value;
+            backgroundColor = document.getElementById('backgroundColor').value;
+            textColor = document.getElementById('textColor').value;
+            
+            // Apply theme changes
+            applyTheme();
+            
             // TODO: Validate email format before saving
-            alert('Email settings saved');
+            alert('Settings saved');
+        }
+
+        function applyTheme() {
+            document.documentElement.style.setProperty('--primary-color', primaryColor);
+            document.body.style.backgroundColor = backgroundColor;
+            document.body.style.color = textColor;
         }
 
         function clearFormSettings() {
@@ -521,6 +559,10 @@
                 formEmail = '';
                 emailSubject = '';
                 emailBody = '';
+                primaryColor = '#007bff';
+                backgroundColor = '#ffffff';
+                textColor = '#333333';
+                applyTheme();
                 refreshCanvas();
                 document.getElementById('property-form').innerHTML = '<p>Select a question to edit its properties</p>';
             }
@@ -540,6 +582,12 @@
                     formEmail = data.emailTo || '';
                     emailSubject = data.emailSubject || '';
                     emailBody = data.emailBody || '';
+                    
+                    // Load theme settings
+                    primaryColor = data.primaryColor || '#007bff';
+                    backgroundColor = data.backgroundColor || '#ffffff';
+                    textColor = data.textColor || '#333333';
+                    applyTheme();
                     
                     if (questions.some(q => (!q.x && !q.X) && (!q.y && !q.Y))) {
                         const positioned = new Set();
@@ -611,6 +659,12 @@
                             formEmail = data.emailTo || '';
                             emailSubject = data.emailSubject || '';
                             emailBody = data.emailBody || '';
+                            
+                            // Load theme settings
+                            primaryColor = data.primaryColor || '#007bff';
+                            backgroundColor = data.backgroundColor || '#ffffff';
+                            textColor = data.textColor || '#333333';
+                            applyTheme();
                             
                             // Position questions in flow order
                             if (questions.some(q => (!q.x && !q.X) && (!q.y && !q.Y))) {

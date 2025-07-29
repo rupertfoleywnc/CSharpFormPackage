@@ -2,7 +2,20 @@
 
 @{
     ViewData["Title"] = "Question Form";
+    string primaryColor = ViewData["PrimaryColor"]?.ToString() ?? "#007bff";
+    string backgroundColor = ViewData["BackgroundColor"]?.ToString() ?? "#ffffff";
+    string textColor = ViewData["TextColor"]?.ToString() ?? "#333333";
 }
+
+<style>
+    :root {
+        --primary-color: @primaryColor;
+    }
+    body {
+        background-color: @backgroundColor !important;
+        color: @textColor !important;
+    }
+</style>
 
 @section Styles {
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />

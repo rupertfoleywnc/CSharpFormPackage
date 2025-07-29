@@ -22,6 +22,23 @@ namespace CSharpFormPackage.Controllers
             {
                 if (!string.IsNullOrEmpty(form))
                 {
+                    // Load form and extract theme colors
+                    string webRootPath = Directory.GetCurrentDirectory();
+                    string jsonFilePath = Path.Combine(webRootPath, "wwwroot", "data", form + "FormFlow.json");
+                    
+                    if (System.IO.File.Exists(jsonFilePath))
+                    {
+                        string jsonContent = System.IO.File.ReadAllText(jsonFilePath);
+                        var formData = System.Text.Json.JsonSerializer.Deserialize<dynamic>(jsonContent);
+                        
+                        if (formData.TryGetProperty("primaryColor", out System.Text.Json.JsonElement primaryColor))
+                            ViewData["PrimaryColor"] = primaryColor.GetString();
+                        if (formData.TryGetProperty("backgroundColor", out System.Text.Json.JsonElement backgroundColor))
+                            ViewData["BackgroundColor"] = backgroundColor.GetString();
+                        if (formData.TryGetProperty("textColor", out System.Text.Json.JsonElement textColor))
+                            ViewData["TextColor"] = textColor.GetString();
+                    }
+                    
                     _questionService.LoadFormFromFile(form + "FormFlow.json");
                 }
                 
