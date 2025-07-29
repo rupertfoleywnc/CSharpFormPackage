@@ -108,12 +108,24 @@
         });
 
         function createQuestion(type, x, y) {
+            // Auto-position if nodes would overlap
+            const minDistance = 250;
+            let finalX = x, finalY = y;
+            
+            for (let existing of questions) {
+                const distance = Math.sqrt(Math.pow(finalX - existing.x, 2) + Math.pow(finalY - existing.y, 2));
+                if (distance < minDistance) {
+                    finalX = existing.x + minDistance;
+                    finalY = existing.y + (Math.random() - 0.5) * 100;
+                }
+            }
+            
             const question = {
                 id: nextId++,
                 questionText: `New ${type} question`,
                 type: type,
-                x: x,
-                y: y,
+                x: finalX,
+                y: finalY,
                 required: false,
                 options: type === 'button' || type === 'yn' ? [{ text: 'Option 1', destination: null }] : [{ text: 'Next', destination: null }],
                 helpText: ''
@@ -242,7 +254,9 @@
         function refreshCanvas() {
             const canvas = document.getElementById('canvas');
             canvas.querySelectorAll('.question-node').forEach(node => node.remove());
-            questions.forEach(renderQuestion);
+            if (questions && questions.length > 0) {
+                questions.forEach(renderQuestion);
+            }
             drawConnections();
         }
 
@@ -250,23 +264,27 @@
             const svg = document.getElementById('connections');
             svg.innerHTML = '';
             
-            questions.forEach(question => {
-                question.options.forEach(option => {
-                    if (option.destination) {
-                        const target = questions.find(q => q.id == option.destination);
-                        if (target) {
-                            const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-                            line.setAttribute('x1', question.x + 100);
-                            line.setAttribute('y1', question.y + 50);
-                            line.setAttribute('x2', target.x + 100);
-                            line.setAttribute('y2', target.y + 50);
-                            line.setAttribute('stroke', 'var(--primary-color)');
-                            line.setAttribute('stroke-width', '2');
-                            svg.appendChild(line);
-                        }
+            if (questions && questions.length > 0) {
+                questions.forEach(question => {
+                    if (question.options) {
+                        question.options.forEach(option => {
+                            if (option.destination) {
+                                const target = questions.find(q => q.id == option.destination);
+                                if (target) {
+                                    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                                    line.setAttribute('x1', question.x + 100);
+                                    line.setAttribute('y1', question.y + 50);
+                                    line.setAttribute('x2', target.x + 100);
+                                    line.setAttribute('y2', target.y + 50);
+                                    line.setAttribute('stroke', 'var(--primary-color)');
+                                    line.setAttribute('stroke-width', '2');
+                                    svg.appendChild(line);
+                                }
+                            }
+                        });
                     }
                 });
-            });
+            }
         }
 
         let isDragging = false;
@@ -349,7 +367,7 @@
                         try {
                             const data = JSON.parse(e.target.result);
                             questions = data.questions || [];
-                            nextId = Math.max(...questions.map(q => q.id), 0) + 1;
+                            nextId = questions.length > 0 ? Math.max(...questions.map(q => q.id), 0) + 1 : 0;
                             refreshCanvas();
                         } catch (error) {
                             alert('Error loading file: ' + error.message);
@@ -388,7 +406,7 @@
                         })
                         .then(data => {
                             questions = data.questions || [];
-                            nextId = Math.max(...questions.map(q => q.id), 0) + 1;
+                            nextId = questions.length > 0 ? Math.max(...questions.map(q => q.id), 0) + 1 : 0;
                             refreshCanvas();
                             alert('Form loaded successfully');
                         })
