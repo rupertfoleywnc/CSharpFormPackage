@@ -67,7 +67,13 @@
         </div>
         
         <div class="canvas" id="canvas">
-            <svg id="connections" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1;"></svg>
+            <svg id="connections" style="position: absolute; top: 0; left: 0; width: 5000px; height: 5000px; pointer-events: none; z-index: 1;">
+                <defs>
+                    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                        <polygon points="0 0, 10 3.5, 0 7" fill="var(--primary-color)" />
+                    </marker>
+                </defs>
+            </svg>
         </div>
         
         <div class="properties" id="properties">
@@ -262,7 +268,33 @@
 
         function drawConnections() {
             const svg = document.getElementById('connections');
+            const canvas = document.getElementById('canvas');
+            const canvasRect = canvas.getBoundingClientRect();
+            
+            // Clear existing connections but keep the defs
+            const defs = svg.querySelector('defs');
             svg.innerHTML = '';
+            if (defs) svg.appendChild(defs);
+            
+            // Recreate arrow marker if missing
+            if (!svg.querySelector('defs')) {
+                const defsEl = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+                const marker = document.createElementNS('http://www.w3.org/2000/svg', 'marker');
+                marker.setAttribute('id', 'arrowhead');
+                marker.setAttribute('markerWidth', '10');
+                marker.setAttribute('markerHeight', '7');
+                marker.setAttribute('refX', '9');
+                marker.setAttribute('refY', '3.5');
+                marker.setAttribute('orient', 'auto');
+                const polygon = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+                polygon.setAttribute('points', '0 0, 10 3.5, 0 7');
+                polygon.setAttribute('fill', 'var(--primary-color)');
+                marker.appendChild(polygon);
+                defsEl.appendChild(marker);
+                svg.appendChild(defsEl);
+            }
+            
+            // SVG size is already set in HTML to cover large area
             
             if (questions && questions.length > 0) {
                 questions.forEach(question => {
@@ -272,12 +304,13 @@
                                 const target = questions.find(q => q.id == option.destination);
                                 if (target) {
                                     const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-                                    line.setAttribute('x1', question.x + 100);
+                                    line.setAttribute('x1', question.x + 200);
                                     line.setAttribute('y1', question.y + 50);
-                                    line.setAttribute('x2', target.x + 100);
+                                    line.setAttribute('x2', target.x);
                                     line.setAttribute('y2', target.y + 50);
                                     line.setAttribute('stroke', 'var(--primary-color)');
                                     line.setAttribute('stroke-width', '2');
+                                    line.setAttribute('marker-end', 'url(#arrowhead)');
                                     svg.appendChild(line);
                                 }
                             }
@@ -367,6 +400,39 @@
                         try {
                             const data = JSON.parse(e.target.result);
                             questions = data.questions || [];
+                            // Position questions in flow order
+                            if (questions.some(q => !q.x && !q.y)) {
+                                const positioned = new Set();
+                                let x = 50, y = 50;
+                                
+                                function positionFlow(qId, level = 0) {
+                                    const q = questions.find(qu => qu.id == qId);
+                                    if (!q || positioned.has(qId)) return;
+                                    
+                                    q.x = 50 + level * 300;
+                                    q.y = y;
+                                    positioned.add(qId);
+                                    y += 150;
+                                    
+                                    if (q.options) {
+                                        q.options.forEach(opt => {
+                                            if (opt.destination) positionFlow(opt.destination, level + 1);
+                                        });
+                                    }
+                                }
+                                
+                                // Start with first question (lowest ID)
+                                const startQ = questions.reduce((min, q) => q.id < min.id ? q : min);
+                                positionFlow(startQ.id);
+                                
+                                // Position any remaining questions
+                                questions.forEach((q, i) => {
+                                    if (!positioned.has(q.id)) {
+                                        q.x = 50 + (i % 3) * 300;
+                                        q.y = y + Math.floor(i / 3) * 150;
+                                    }
+                                });
+                            }
                             nextId = questions.length > 0 ? Math.max(...questions.map(q => q.id), 0) + 1 : 0;
                             refreshCanvas();
                         } catch (error) {
@@ -406,6 +472,39 @@
                         })
                         .then(data => {
                             questions = data.questions || [];
+                            // Position questions in flow order
+                            if (questions.some(q => !q.x && !q.y)) {
+                                const positioned = new Set();
+                                let x = 50, y = 50;
+                                
+                                function positionFlow(qId, level = 0) {
+                                    const q = questions.find(qu => qu.id == qId);
+                                    if (!q || positioned.has(qId)) return;
+                                    
+                                    q.x = 50 + level * 300;
+                                    q.y = y;
+                                    positioned.add(qId);
+                                    y += 150;
+                                    
+                                    if (q.options) {
+                                        q.options.forEach(opt => {
+                                            if (opt.destination) positionFlow(opt.destination, level + 1);
+                                        });
+                                    }
+                                }
+                                
+                                // Start with first question (lowest ID)
+                                const startQ = questions.reduce((min, q) => q.id < min.id ? q : min);
+                                positionFlow(startQ.id);
+                                
+                                // Position any remaining questions
+                                questions.forEach((q, i) => {
+                                    if (!positioned.has(q.id)) {
+                                        q.x = 50 + (i % 3) * 300;
+                                        q.y = y + Math.floor(i / 3) * 150;
+                                    }
+                                });
+                            }
                             nextId = questions.length > 0 ? Math.max(...questions.map(q => q.id), 0) + 1 : 0;
                             refreshCanvas();
                             alert('Form loaded successfully');
