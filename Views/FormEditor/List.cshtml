@@ -1,0 +1,48 @@
+@model List<CsharpFormBuilder.Controllers.FormInfo>
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Saved Forms</title>
+    <link rel="stylesheet" href="~/css/site.css" />
+    <style>
+        .forms-container { max-width: 800px; margin: 2rem auto; padding: 2rem; }
+        .form-item { 
+            background: #f8f9fa; border: 2px solid var(--primary-color); 
+            border-radius: 8px; padding: 20px; margin-bottom: 15px; 
+        }
+        .form-title { color: var(--primary-color); margin: 0 0 10px 0; }
+        .form-details { color: #666; font-size: 14px; }
+        .nav-link { 
+            display: inline-block; margin: 10px 10px 0 0; padding: 10px 20px; 
+            background: var(--primary-color); color: white; text-decoration: none; 
+            border-radius: 5px; 
+        }
+        .nav-link:hover { opacity: 0.9; color: white; }
+    </style>
+</head>
+<body>
+    <main class="forms-container">
+        <h1>Saved Forms</h1>
+        <a href="/FormEditor" class="nav-link">Create New Form</a>
+        
+        @if (Model.Any())
+        {
+            @foreach (var form in Model)
+            {
+                <div class="form-item">
+                    <h3 class="form-title">@form.Title</h3>
+                    <div class="form-details">
+                        <p>File: @form.FileName</p>
+                        <p>Questions: @form.QuestionCount</p>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <p>No forms found. <a href="/FormEditor">Create your first form</a></p>
+        }
+    </main>
+</body>
+</html>

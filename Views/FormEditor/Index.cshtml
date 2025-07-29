@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Visual Form Editor</title>
+    <link rel="stylesheet" href="~/css/site.css" />
+    <style>
+        .editor-container { display: flex; height: 100vh; }
+        .toolbox { width: 250px; background: #f8f9fa; padding: 20px; border-right: 1px solid #ddd; }
+        .canvas { flex: 1; padding: 20px; background: #fff; position: relative; overflow: auto; }
+        .properties { width: 300px; background: #f8f9fa; padding: 20px; border-left: 1px solid #ddd; }
+        
+        .tool-item { 
+            padding: 10px; margin: 5px 0; background: var(--primary-color); color: white; 
+            border-radius: 5px; cursor: grab; text-align: center; 
+        }
+        .tool-item:active { cursor: grabbing; }
+        
+        .question-node { 
+            position: absolute; width: 200px; min-height: 100px; background: #fff; 
+            border: 2px solid var(--primary-color); border-radius: 8px; padding: 15px; 
+            cursor: move; box-shadow: 0 2px 8px rgba(0,0,0,0.1); 
+        }
+        .question-node.selected { border-color: #FFB000; box-shadow: 0 0 10px rgba(255,176,0,0.5); }
+        .question-node h4 { margin: 0 0 10px 0; font-size: 14px; color: var(--primary-color); }
+        .question-node p { margin: 0; font-size: 12px; color: #666; }
+        .question-node .connection-point { 
+            position: absolute; width: 12px; height: 12px; background: var(--primary-color); 
+            border-radius: 50%; right: -6px; top: 50%; transform: translateY(-50%); 
+            cursor: crosshair; 
+        }
+        .question-node .connection-point:hover { background: #FFB000; }
+        
+        .connection-line { position: absolute; stroke: var(--primary-color); stroke-width: 2; pointer-events: none; }
+        
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; }
+        .form-group input, .form-group select, .form-group textarea { 
+            width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; 
+        }
+        
+        .btn-primary { background: var(--primary-color); color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; }
+        .btn-primary:hover { opacity: 0.9; }
+        
+        .option-item { display: flex; align-items: center; margin-bottom: 10px; }
+        .option-item input { flex: 1; margin-right: 10px; }
+        .option-item button { background: #dc3545; color: white; border: none; padding: 5px 10px; border-radius: 3px; }
+    </style>
+</head>
+<body>
+    <div class="editor-container">
+        <div class="toolbox">
+            <h3>Components</h3>
+            <div class="tool-item" draggable="true" data-type="button">Button Question</div>
+            <div class="tool-item" draggable="true" data-type="text">Text Input</div>
+            <div class="tool-item" draggable="true" data-type="textarea">Text Area</div>
+            <div class="tool-item" draggable="true" data-type="date">Date Input</div>
+            <div class="tool-item" draggable="true" data-type="yn">Yes/No Question</div>
+            <div class="tool-item" draggable="true" data-type="address">Address Input</div>
+            <div class="tool-item" draggable="true" data-type="location">Location Picker</div>
+            <div class="tool-item" draggable="true" data-type="end">End Screen</div>
+            
+            <h3>Actions</h3>
+            <button class="btn-primary" onclick="saveForm()">Save Form</button>
+            <button class="btn-primary" onclick="loadForm()">Load File</button>
+            <button class="btn-primary" onclick="loadFromServer()">Load from Server</button>
+            <button class="btn-primary" onclick="clearCanvas()">Clear</button>
+        </div>
+        
+        <div class="canvas" id="canvas">
+            <svg id="connections" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1;"></svg>
+        </div>
+        
+        <div class="properties" id="properties">
+            <h3>Properties</h3>
+            <div id="property-form">
+                <p>Select a question to edit its properties</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let questions = [];
+        let selectedQuestion = null;
+        let nextId = 0;
+        let draggedElement = null;
+        let connections = [];
+
+        // Drag and drop functionality
+        document.querySelectorAll('.tool-item').forEach(item => {
+            item.addEventListener('dragstart', (e) => {
+                draggedElement = e.target.dataset.type;
+            });
+        });
+
+        document.getElementById('canvas').addEventListener('dragover', (e) => {
+            e.preventDefault();
+        });
+
+        document.getElementById('canvas').addEventListener('drop', (e) => {
+            e.preventDefault();
+            if (draggedElement) {
+                const rect = e.target.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                createQuestion(draggedElement, x, y);
+                draggedElement = null;
+            }
+        });
+
+        function createQuestion(type, x, y) {
+            const question = {
+                id: nextId++,
+                questionText: `New ${type} question`,
+                type: type,
+                x: x,
+                y: y,
+                required: false,
+                options: type === 'button' || type === 'yn' ? [{ text: 'Option 1', destination: null }] : [{ text: 'Next', destination: null }],
+                helpText: ''
+            };
+            
+            questions.push(question);
+            renderQuestion(question);
+        }
+
+        function renderQuestion(question) {
+            const node = document.createElement('div');
+            node.className = 'question-node';
+            node.style.left = question.x + 'px';
+            node.style.top = question.y + 'px';
+            node.innerHTML = `
+                <h4>ID: ${question.id}</h4>
+                <p><strong>${question.type}</strong></p>
+                <p>${question.questionText}</p>
+                <div class="connection-point"></div>
+            `;
+            
+            node.addEventListener('click', () => selectQuestion(question));
+            node.addEventListener('mousedown', startDrag);
+            
+            document.getElementById('canvas').appendChild(node);
+        }
+
+        function selectQuestion(question) {
+            selectedQuestion = question;
+            document.querySelectorAll('.question-node').forEach(node => node.classList.remove('selected'));
+            event.target.closest('.question-node').classList.add('selected');
+            showProperties(question);
+        }
+
+        function showProperties(question) {
+            const form = document.getElementById('property-form');
+            let optionsHtml = '';
+            
+            question.options.forEach((option, index) => {
+                optionsHtml += `
+                    <div class="option-item">
+                        <input type="text" value="${option.text}" onchange="updateOption(${index}, 'text', this.value)">
+                        <input type="number" value="${option.destination || ''}" placeholder="Destination ID" onchange="updateOption(${index}, 'destination', this.value)">
+                        <button onclick="removeOption(${index})">Remove</button>
+                    </div>
+                `;
+            });
+            
+            form.innerHTML = `
+                <div class="form-group">
+                    <label>Question ID</label>
+                    <input type="number" value="${question.id}" onchange="updateQuestion('id', this.value)">
+                </div>
+                <div class="form-group">
+                    <label>Question Text</label>
+                    <textarea onchange="updateQuestion('questionText', this.value)">${question.questionText}</textarea>
+                </div>
+                <div class="form-group">
+                    <label>Type</label>
+                    <select onchange="updateQuestion('type', this.value)">
+                        <option value="button" ${question.type === 'button' ? 'selected' : ''}>Button</option>
+                        <option value="text" ${question.type === 'text' ? 'selected' : ''}>Text</option>
+                        <option value="textarea" ${question.type === 'textarea' ? 'selected' : ''}>Textarea</option>
+                        <option value="date" ${question.type === 'date' ? 'selected' : ''}>Date</option>
+                        <option value="yn" ${question.type === 'yn' ? 'selected' : ''}>Yes/No</option>
+                        <option value="address" ${question.type === 'address' ? 'selected' : ''}>Address</option>
+                        <option value="location" ${question.type === 'location' ? 'selected' : ''}>Location</option>
+                        <option value="end" ${question.type === 'end' ? 'selected' : ''}>End</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Required</label>
+                    <input type="checkbox" ${question.required ? 'checked' : ''} onchange="updateQuestion('required', this.checked)">
+                </div>
+                <div class="form-group">
+                    <label>Help Text</label>
+                    <textarea onchange="updateQuestion('helpText', this.value)">${question.helpText || ''}</textarea>
+                </div>
+                <div class="form-group">
+                    <label>Options</label>
+                    ${optionsHtml}
+                    <button class="btn-primary" onclick="addOption()">Add Option</button>
+                </div>
+                <button class="btn-primary" onclick="deleteQuestion()">Delete Question</button>
+            `;
+        }
+
+        function updateQuestion(property, value) {
+            if (selectedQuestion) {
+                selectedQuestion[property] = value;
+                refreshCanvas();
+            }
+        }
+
+        function updateOption(index, property, value) {
+            if (selectedQuestion && selectedQuestion.options[index]) {
+                selectedQuestion.options[index][property] = property === 'destination' ? parseInt(value) || null : value;
+                drawConnections();
+            }
+        }
+
+        function addOption() {
+            if (selectedQuestion) {
+                selectedQuestion.options.push({ text: 'New Option', destination: null });
+                showProperties(selectedQuestion);
+            }
+        }
+
+        function removeOption(index) {
+            if (selectedQuestion && selectedQuestion.options.length > 1) {
+                selectedQuestion.options.splice(index, 1);
+                showProperties(selectedQuestion);
+                drawConnections();
+            }
+        }
+
+        function deleteQuestion() {
+            if (selectedQuestion) {
+                questions = questions.filter(q => q.id !== selectedQuestion.id);
+                selectedQuestion = null;
+                refreshCanvas();
+                document.getElementById('property-form').innerHTML = '<p>Select a question to edit its properties</p>';
+            }
+        }
+
+        function refreshCanvas() {
+            const canvas = document.getElementById('canvas');
+            canvas.querySelectorAll('.question-node').forEach(node => node.remove());
+            questions.forEach(renderQuestion);
+            drawConnections();
+        }
+
+        function drawConnections() {
+            const svg = document.getElementById('connections');
+            svg.innerHTML = '';
+            
+            questions.forEach(question => {
+                question.options.forEach(option => {
+                    if (option.destination) {
+                        const target = questions.find(q => q.id == option.destination);
+                        if (target) {
+                            const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                            line.setAttribute('x1', question.x + 100);
+                            line.setAttribute('y1', question.y + 50);
+                            line.setAttribute('x2', target.x + 100);
+                            line.setAttribute('y2', target.y + 50);
+                            line.setAttribute('stroke', 'var(--primary-color)');
+                            line.setAttribute('stroke-width', '2');
+                            svg.appendChild(line);
+                        }
+                    }
+                });
+            });
+        }
+
+        let isDragging = false;
+        let dragOffset = { x: 0, y: 0 };
+
+        function startDrag(e) {
+            if (e.target.closest('.question-node')) {
+                isDragging = true;
+                const node = e.target.closest('.question-node');
+                const rect = node.getBoundingClientRect();
+                const canvasRect = document.getElementById('canvas').getBoundingClientRect();
+                dragOffset.x = e.clientX - rect.left;
+                dragOffset.y = e.clientY - rect.top;
+                
+                document.addEventListener('mousemove', drag);
+                document.addEventListener('mouseup', stopDrag);
+            }
+        }
+
+        function drag(e) {
+            if (isDragging && selectedQuestion) {
+                const canvasRect = document.getElementById('canvas').getBoundingClientRect();
+                selectedQuestion.x = e.clientX - canvasRect.left - dragOffset.x;
+                selectedQuestion.y = e.clientY - canvasRect.top - dragOffset.y;
+                
+                const node = document.querySelector('.question-node.selected');
+                if (node) {
+                    node.style.left = selectedQuestion.x + 'px';
+                    node.style.top = selectedQuestion.y + 'px';
+                }
+                drawConnections();
+            }
+        }
+
+        function stopDrag() {
+            isDragging = false;
+            document.removeEventListener('mousemove', drag);
+            document.removeEventListener('mouseup', stopDrag);
+        }
+
+        function saveForm() {
+            const title = prompt('Enter form title:');
+            if (title) {
+                const formData = {
+                    title: title,
+                    questions: questions
+                };
+                
+                fetch('/FormEditor/SaveForm', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Form saved as ' + data.fileName);
+                    } else {
+                        alert('Error saving form: ' + data.error);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error saving form');
+                });
+            }
+        }
+
+        function loadForm() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            input.onchange = (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        try {
+                            const data = JSON.parse(e.target.result);
+                            questions = data.questions || [];
+                            nextId = Math.max(...questions.map(q => q.id), 0) + 1;
+                            refreshCanvas();
+                        } catch (error) {
+                            alert('Error loading file: ' + error.message);
+                        }
+                    };
+                    reader.readAsText(file);
+                }
+            };
+            input.click();
+        }
+
+        function clearCanvas() {
+            if (confirm('Clear all questions?')) {
+                questions = [];
+                selectedQuestion = null;
+                nextId = 0;
+                refreshCanvas();
+                document.getElementById('property-form').innerHTML = '<p>Select a question to edit its properties</p>';
+            }
+        }
+
+        function loadFromServer() {
+            fetch('/FormEditor/GetFormList')
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.files.length > 0) {
+                    const fileList = data.files.join('\n');
+                    const filename = prompt(`Available forms:\n${fileList}\n\nEnter filename to load:`);
+                    if (filename) {
+                        fetch(`/data/${filename}FormFlow.json`)
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error('File not found');
+                            }
+                            return response.json();
+                        })
+                        .then(data => {
+                            questions = data.questions || [];
+                            nextId = Math.max(...questions.map(q => q.id), 0) + 1;
+                            refreshCanvas();
+                            alert('Form loaded successfully');
+                        })
+                        .catch(error => {
+                            alert('Error loading form: ' + error.message);
+                        });
+                    }
+                } else {
+                    alert('No forms found on server');
+                }
+            })
+            .catch(error => {
+                alert('Error getting form list: ' + error.message);
+            });
+        }
+    </script>
+</body>
+</html>
