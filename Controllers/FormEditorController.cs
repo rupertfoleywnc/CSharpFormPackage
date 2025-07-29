@@ -10,26 +10,37 @@ namespace CsharpFormBuilder.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> SaveForm([FromBody] FormData formData)
+        public async Task<IActionResult> SaveForm([FromBody] object rawData)
         {
             try
             {
-                if (formData == null || string.IsNullOrEmpty(formData.title))
+                Console.WriteLine($"Raw data received: {rawData}");
+                
+                if (rawData == null)
                 {
-                    return Json(new { success = false, error = "Form data or title is missing" });
+                    return Json(new { success = false, error = "No data received" });
                 }
                 
-                var fileName = formData.title.Replace(" ", "") + "FormFlow.json";
+                var jsonString = rawData.ToString();
+                Console.WriteLine($"JSON string: {jsonString}");
+                
+                // Parse as dynamic to handle any property naming
+                dynamic formData = System.Text.Json.JsonSerializer.Deserialize<dynamic>(jsonString);
+                
+                string title = formData.GetProperty("title").GetString();
+                Console.WriteLine($"Extracted title: '{title}'");
+                
+                if (string.IsNullOrEmpty(title))
+                {
+                    return Json(new { success = false, error = "Form title is missing" });
+                }
+                
+                var fileName = title.Replace(" ", "") + "FormFlow.json";
                 var filePath = Path.Combine("wwwroot", "data", fileName);
                 
                 Directory.CreateDirectory(Path.GetDirectoryName(filePath));
                 
-                var json = System.Text.Json.JsonSerializer.Serialize(formData, new System.Text.Json.JsonSerializerOptions 
-                { 
-                    WriteIndented = true 
-                });
-                
-                await System.IO.File.WriteAllTextAsync(filePath, json);
+                await System.IO.File.WriteAllTextAsync(filePath, jsonString);
                 
                 return Json(new { success = true, fileName = fileName });
             }
@@ -73,12 +84,19 @@ namespace CsharpFormBuilder.Controllers
                     try
                     {
                         var json = System.IO.File.ReadAllText(file);
-                        var formData = System.Text.Json.JsonSerializer.Deserialize<FormData>(json);
+                        var formData = System.Text.Json.JsonSerializer.Deserialize<dynamic>(json);
+                        string title = formData.GetProperty("title").GetString();
+                        int questionCount = 0;
+                        if (formData.TryGetProperty("questions", out System.Text.Json.JsonElement questionsProperty))
+                        {
+                            questionCount = questionsProperty.GetArrayLength();
+                        }
+                        
                         forms.Add(new FormInfo 
                         { 
-                            Title = formData.title, 
+                            Title = title, 
                             FileName = Path.GetFileName(file),
-                            QuestionCount = formData.questions?.Count ?? 0
+                            QuestionCount = questionCount
                         });
                     }
                     catch { }
@@ -111,24 +129,25 @@ namespace CsharpFormBuilder.Controllers
     {
         public string title { get; set; }
         public List<Question> questions { get; set; }
+        public string emailTo { get; set; }
     }
 
     public class Question
     {
-        public int Id { get; set; }
-        public string QuestionText { get; set; }
-        public string Type { get; set; }
-        public bool Required { get; set; }
-        public List<Option> Options { get; set; }
-        public string HelpText { get; set; }
-        public int X { get; set; }
-        public int Y { get; set; }
+        public int id { get; set; }
+        public string questionText { get; set; }
+        public string type { get; set; }
+        public bool required { get; set; }
+        public List<Option> options { get; set; }
+        public string helpText { get; set; }
+        public int x { get; set; }
+        public int y { get; set; }
     }
 
     public class Option
     {
-        public string Text { get; set; }
-        public int? Destination { get; set; }
+        public string text { get; set; }
+        public int? destination { get; set; }
     }
 
     public class FormInfo

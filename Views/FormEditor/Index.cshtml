@@ -63,6 +63,7 @@
             <button class="btn-primary" onclick="saveForm()">Save Form</button>
             <button class="btn-primary" onclick="loadForm()">Load File</button>
             <button class="btn-primary" onclick="loadFromServer()">Load from Server</button>
+            <button class="btn-primary" onclick="showFormSettings()">Form Settings</button>
             <button class="btn-primary" onclick="clearCanvas()">Clear</button>
         </div>
         
@@ -90,6 +91,7 @@
         let nextId = 0;
         let draggedElement = null;
         let connections = [];
+        let formEmail = '';
 
         // Drag and drop functionality
         document.querySelectorAll('.tool-item').forEach(item => {
@@ -220,9 +222,27 @@
             `;
         }
 
+        function showFormSettings() {
+            const form = document.getElementById('property-form');
+            form.innerHTML = `
+                <h4>Form Settings</h4>
+                <div class="form-group">
+                    <label>Email Address (for form submissions)</label>
+                    <input type="email" id="formEmail" placeholder="email@example.com">
+                    <button class="btn-primary" onclick="saveFormEmail()">Save Email</button>
+                </div>
+                <button class="btn-primary" onclick="clearFormSettings()">Back to Questions</button>
+            `;
+        }
+
         function updateQuestion(property, value) {
             if (selectedQuestion) {
                 selectedQuestion[property] = value;
+                // Also update capitalized version for compatibility
+                if (property !== 'id') {
+                    const capitalizedProperty = property.charAt(0).toUpperCase() + property.slice(1);
+                    selectedQuestion[capitalizedProperty] = value;
+                }
                 refreshCanvas();
             }
         }
@@ -343,13 +363,17 @@
         function drag(e) {
             if (isDragging && selectedQuestion) {
                 const canvas = document.getElementById('canvas');
-                selectedQuestion.x = e.clientX - canvas.offsetLeft - dragOffset.x + canvas.scrollLeft;
-                selectedQuestion.y = e.clientY - canvas.offsetTop - dragOffset.y + canvas.scrollTop;
+                const newX = e.clientX - canvas.offsetLeft - dragOffset.x + canvas.scrollLeft;
+                const newY = e.clientY - canvas.offsetTop - dragOffset.y + canvas.scrollTop;
+                
+                // Only update the lowercase properties to avoid duplication
+                selectedQuestion.x = newX;
+                selectedQuestion.y = newY;
                 
                 const node = document.querySelector('.question-node.selected');
                 if (node) {
-                    node.style.left = selectedQuestion.x + 'px';
-                    node.style.top = selectedQuestion.y + 'px';
+                    node.style.left = newX + 'px';
+                    node.style.top = newY + 'px';
                 }
                 drawConnections();
             }
@@ -363,11 +387,14 @@
 
         function saveForm() {
             const title = prompt('Enter form title:');
-            if (title) {
+            if (title && title.trim()) {
+                console.log('Questions before save:', questions);
                 const formData = {
-                    title: title,
-                    questions: questions
+                    title: title.trim(),
+                    questions: questions,
+                    emailTo: formEmail || ''
                 };
+                console.log('Form data to save:', formData);
                 
                 fetch('/FormEditor/SaveForm', {
                     method: 'POST',
@@ -456,11 +483,22 @@
             input.click();
         }
 
+        function saveFormEmail() {
+            formEmail = document.getElementById('formEmail').value;
+            // TODO: Validate email format before saving
+            alert('Email saved: ' + formEmail);
+        }
+
+        function clearFormSettings() {
+            document.getElementById('property-form').innerHTML = '<p>Select a question to edit its properties</p>';
+        }
+
         function clearCanvas() {
             if (confirm('Clear all questions?')) {
                 questions = [];
                 selectedQuestion = null;
                 nextId = 0;
+                formEmail = '';
                 refreshCanvas();
                 document.getElementById('property-form').innerHTML = '<p>Select a question to edit its properties</p>';
             }

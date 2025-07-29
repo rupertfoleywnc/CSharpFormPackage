@@ -189,5 +189,35 @@ namespace CSharpFormPackage.Controllers
             TempData.Clear();
             return RedirectToAction("Index");
         }
+
+        [HttpPost]
+        public IActionResult SendEmail(string formName, List<UserAnswer> answers)
+        {
+            try
+            {
+                string webRootPath = System.IO.Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+                string jsonFilePath = System.IO.Path.Combine(webRootPath, "data", formName + "FormFlow.json");
+                
+                if (System.IO.File.Exists(jsonFilePath))
+                {
+                    string jsonContent = System.IO.File.ReadAllText(jsonFilePath);
+                    var formData = System.Text.Json.JsonSerializer.Deserialize<dynamic>(jsonContent);
+                    
+                    // TODO: Add email service configuration in appsettings.json (SMTP settings)
+                    // TODO: Implement actual email sending logic here
+                    // TODO: Extract emailTo from formData and format answers into email body
+                    // TODO: Send email with form responses to the configured email address
+                    
+                    // For now, just return success
+                    return Json(new { success = true });
+                }
+                
+                return Json(new { success = false, error = "Form not found" });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, error = ex.Message });
+            }
+        }
     }
 }

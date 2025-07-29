@@ -1,0 +1,657 @@
+{
+  "title": "test4",
+  "questions": [
+    {
+      "Id": 0,
+      "QuestionText": "What kind of problem are you here to report?",
+      "Type": "button",
+      "Required": false,
+      "Options": [
+        {
+          "Text": "Flytipping",
+          "Destination": 10
+        },
+        {
+          "Text": "Street Cleaning Required",
+          "Destination": 20
+        },
+        {
+          "Text": "Abandoned Trolley",
+          "Destination": 31
+        },
+        {
+          "Text": "Street Sign",
+          "Destination": 40
+        },
+        {
+          "Text": "Dead Animal",
+          "Destination": 50
+        },
+        {
+          "Text": "Flyposting",
+          "Destination": 60
+        },
+        {
+          "Text": "Graffitti",
+          "Destination": 60
+        },
+        {
+          "Text": "Lost/Stray Dog",
+          "Destination": 70
+        },
+        {
+          "Text": "Litter Bin Issue",
+          "Destination": 80
+        },
+        {
+          "Text": "Street/Park Furniture Issue",
+          "Destination": 90
+        },
+        {
+          "Text": "Trees",
+          "Destination": 100
+        }
+      ],
+      "HelpText": null,
+      "X": 30,
+      "Y": 30
+    },
+    {
+      "Id": 10,
+      "QuestionText": "What type of land is the flytipping on?",
+      "Type": "button",
+      "Required": false,
+      "Options": [
+        {
+          "Text": "Agriculture",
+          "Destination": 11
+        },
+        {
+          "Text": "Commercial",
+          "Destination": 11
+        },
+        {
+          "Text": "Council Land",
+          "Destination": 11
+        },
+        {
+          "Text": "Footpath/Bridleway",
+          "Destination": 11
+        },
+        {
+          "Text": "Private/Residential",
+          "Destination": 11
+        },
+        {
+          "Text": "Railway",
+          "Destination": 11
+        },
+        {
+          "Text": "Rear Alleyway",
+          "Destination": 11
+        },
+        {
+          "Text": "Watercourse Bank",
+          "Destination": 11
+        },
+        {
+          "Text": "Other",
+          "Destination": 11
+        }
+      ],
+      "HelpText": null,
+      "X": 280,
+      "Y": 30
+    },
+    {
+      "Id": 11,
+      "QuestionText": "What is the majority of the flytipping?",
+      "Type": "button",
+      "Required": false,
+      "Options": [
+        {
+          "Text": "Chemical Waste/Drums",
+          "Destination": 12
+        },
+        {
+          "Text": "Electrical",
+          "Destination": 12
+        },
+        {
+          "Text": "Green Waste",
+          "Destination": 12
+        },
+        {
+          "Text": "Household Waste",
+          "Destination": 12
+        },
+        {
+          "Text": "Tyres",
+          "Destination": 12
+        },
+        {
+          "Text": "White Goods",
+          "Destination": 12
+        },
+        {
+          "Text": "Other - Please Specify",
+          "Destination": 12
+        }
+      ],
+      "HelpText": null,
+      "X": 530,
+      "Y": 30
+    },
+    {
+      "Id": 12,
+      "QuestionText": "Aproximately how much waste is there?",
+      "Type": "button",
+      "Required": false,
+      "Options": [
+        {
+          "Text": "Single Item",
+          "Destination": 13
+        },
+        {
+          "Text": "Car Boot Load",
+          "Destination": 13
+        },
+        {
+          "Text": "Small Van Load",
+          "Destination": 13
+        },
+        {
+          "Text": "Transit Van Load",
+          "Destination": 13
+        },
+        {
+          "Text": "Tipper/Lorry Load",
+          "Destination": 13
+        }
+      ],
+      "HelpText": null,
+      "X": 780,
+      "Y": 30
+    },
+    {
+      "Id": 13,
+      "QuestionText": "Did you witness the flytipping take place?",
+      "Type": "yn",
+      "Required": false,
+      "Options": [
+        {
+          "Text": "Yes",
+          "Destination": 14
+        },
+        {
+          "Text": "No",
+          "Destination": 120
+        }
+      ],
+      "HelpText": null,
+      "X": 1030,
+      "Y": 30
+    },
+    {
+      "Id": 14,
+      "QuestionText": "Please enter the date the incident took place",
+      "Type": "date",
+      "Required": false,
+      "Options": [
+        {
+          "Text": "Next",
+          "Destination": 15
+        }
+      ],
+      "HelpText": null,
+      "X": 1280,
+      "Y": 30
+    },
+    {
+      "Id": 15,
+      "QuestionText": "Please enter the approximate time the incident took place",
+      "Type": "text",
+      "Required": true,
+      "Options": [
+        {
+          "Text": "Next",
+          "Destination": 16
+        }
+      ],
+      "HelpText": null,
+      "X": 1530,
+      "Y": 30
+    },
+    {
+      "Id": 16,
+      "QuestionText": "Please give as much information of the flytipping incident as possible",
+      "Type": "textarea",
+      "Required": true,
+      "Options": [
+        {
+          "Text": "Next",
+          "Destination": 17
+        }
+      ],
+      "HelpText": "I.E. Who you saw, details of the vehicle used, etc...",
+      "X": 1780,
+      "Y": 30
+    },
+    {
+      "Id": 17,
+      "QuestionText": "If you witnessed the offence being committed would you be prepared to provide a witness statement?",
+      "Type": "yn",
+      "Required": false,
+      "Options": [
+        {
+          "Text": "Yes",
+          "Destination": 120
+        },
+        {
+          "Text": "No",
+          "Destination": 120
+        }
+      ],
+      "HelpText": null,
+      "X": 2030,
+      "Y": 30
+    },
+    {
+      "Id": 20,
+      "QuestionText": "What type of mess needs to be cleaned?",
+      "Type": "button",
+      "Required": false,
+      "Options": [
+        {
+          "Text": "Bodily Fluids",
+          "Destination": 21
+        },
+        {
+          "Text": "Broken Glass",
+          "Destination": 21
+        },
+        {
+          "Text": "Dog Fouling",
+          "Destination": 21
+        },
+        {
+          "Text": "Drug Paraphernalia",
+          "Destination": 21
+        },
+        {
+          "Text": "Gum Removal",
+          "Destination": 21
+        },
+        {
+          "Text": "Litter",
+          "Destination": 21
+        },
+        {
+          "Text": "Witnessed Littering Offence",
+          "Destination": 21
+        },
+        {
+          "Text": "Street Sweeping Required",
+          "Destination": 21
+        },
+        {
+          "Text": "Street Washing",
+          "Destination": 21
+        },
+        {
+          "Text": "Sweeper Bags Not Collected",
+          "Destination": 21
+        }
+      ],
+      "HelpText": null,
+      "X": 280,
+      "Y": 180
+    },
+    {
+      "Id": 21,
+      "QuestionText": "Type of Land",
+      "Type": "button",
+      "Required": false,
+      "Options": [
+        {
+          "Text": "Footpath",
+          "Destination": 120
+        },
+        {
+          "Text": "Park",
+          "Destination": 120
+        },
+        {
+          "Text": "Highway",
+          "Destination": 120
+        },
+        {
+          "Text": "Other",
+          "Destination": 120
+        }
+      ],
+      "HelpText": null,
+      "X": 530,
+      "Y": 180
+    },
+    {
+      "Id": 31,
+      "QuestionText": "Which supermarket does the trolley belong to?",
+      "Type": "button",
+      "Required": false,
+      "Options": [
+        {
+          "Text": "Aldi",
+          "Destination": 32
+        },
+        {
+          "Text": "B\u0026M",
+          "Destination": 32
+        },
+        {
+          "Text": "Homebase",
+          "Destination": 32
+        },
+        {
+          "Text": "Tesco",
+          "Destination": 32
+        },
+        {
+          "Text": "Waitrose",
+          "Destination": 32
+        },
+        {
+          "Text": "Unknown/Other",
+          "Destination": 32
+        }
+      ],
+      "HelpText": null,
+      "X": 280,
+      "Y": 330
+    },
+    {
+      "Id": 32,
+      "QuestionText": "Is the trolley in water?",
+      "Type": "yn",
+      "Required": false,
+      "Options": [
+        {
+          "Text": "Yes",
+          "Destination": 120
+        },
+        {
+          "Text": "No",
+          "Destination": 120
+        }
+      ],
+      "HelpText": null,
+      "X": 530,
+      "Y": 330
+    },
+    {
+      "Id": 40,
+      "QuestionText": "What is wrong with the street sign?",
+      "Type": "button",
+      "Required": false,
+      "Options": [
+        {
+          "Text": "Graffiti/Marks Obscuring Sign",
+          "Destination": 21
+        },
+        {
+          "Text": "Street Sign Cleaning",
+          "Destination": 21
+        }
+      ],
+      "HelpText": null,
+      "X": 280,
+      "Y": 480
+    },
+    {
+      "Id": 50,
+      "QuestionText": "What type of animal is it?",
+      "Type": "button",
+      "Required": false,
+      "Options": [
+        {
+          "Text": "Badger",
+          "Destination": 120
+        },
+        {
+          "Text": "Cat",
+          "Destination": 120
+        },
+        {
+          "Text": "Deer",
+          "Destination": 120
+        },
+        {
+          "Text": "Dog",
+          "Destination": 120
+        },
+        {
+          "Text": "Fox",
+          "Destination": 120
+        },
+        {
+          "Text": "Other (Please Specify)",
+          "Destination": 120
+        }
+      ],
+      "HelpText": null,
+      "X": 280,
+      "Y": 630
+    },
+    {
+      "Id": 60,
+      "QuestionText": "Is it offensive?",
+      "Type": "yn",
+      "Required": false,
+      "Options": [
+        {
+          "Text": "Yes",
+          "Destination": 120
+        },
+        {
+          "Text": "No",
+          "Destination": 120
+        }
+      ],
+      "HelpText": null,
+      "X": 280,
+      "Y": 780
+    },
+    {
+      "Id": 70,
+      "QuestionText": "Which type of report are you trying to make?",
+      "Type": "button",
+      "Required": false,
+      "Options": [
+        {
+          "Text": "Reporting a Lost Dog",
+          "Destination": 120
+        },
+        {
+          "Text": "Roaming Dog Report",
+          "Destination": 120
+        },
+        {
+          "Text": "Reporting Found Dog",
+          "Destination": 120
+        }
+      ],
+      "HelpText": null,
+      "X": 280,
+      "Y": 930
+    },
+    {
+      "Id": 80,
+      "QuestionText": "What kind of problem are you trying to report?",
+      "Type": "button",
+      "Required": false,
+      "Options": [
+        {
+          "Text": "Litter Bin Overflowing",
+          "Destination": 81
+        },
+        {
+          "Text": "Litter Bin Needs Repair",
+          "Destination": 81
+        }
+      ],
+      "HelpText": null,
+      "X": 280,
+      "Y": 1080
+    },
+    {
+      "Id": 81,
+      "QuestionText": "Please enter the Bin Reference number",
+      "Type": "text",
+      "Required": true,
+      "Options": [
+        {
+          "Text": "Next",
+          "Destination": 120
+        }
+      ],
+      "HelpText": null,
+      "X": 530,
+      "Y": 480
+    },
+    {
+      "Id": 90,
+      "QuestionText": "Please select the issue you have found",
+      "Type": "button",
+      "Required": false,
+      "Options": [
+        {
+          "Text": "Broken Street Lighting",
+          "Destination": 120
+        },
+        {
+          "Text": "Broken Bench",
+          "Destination": 120
+        }
+      ],
+      "HelpText": null,
+      "X": 280,
+      "Y": 1230
+    },
+    {
+      "Id": 120,
+      "QuestionText": "Can you provide additional information?",
+      "Type": "textarea",
+      "Required": true,
+      "Options": [
+        {
+          "Text": "Next",
+          "Destination": 121
+        }
+      ],
+      "HelpText": "Please provide us with any additional information you feel necessary.",
+      "X": 2280,
+      "Y": 30
+    },
+    {
+      "Id": 121,
+      "QuestionText": "What is your First Name?",
+      "Type": "text",
+      "Required": true,
+      "Options": [
+        {
+          "Text": "Next",
+          "Destination": 122
+        }
+      ],
+      "HelpText": null,
+      "X": 2530,
+      "Y": 30
+    },
+    {
+      "Id": 122,
+      "QuestionText": "What is your Last Name?",
+      "Type": "text",
+      "Required": true,
+      "Options": [
+        {
+          "Text": "Next",
+          "Destination": 123
+        }
+      ],
+      "HelpText": null,
+      "X": 2780,
+      "Y": 30
+    },
+    {
+      "Id": 123,
+      "QuestionText": "What is your Telephone Number?",
+      "Type": "text",
+      "Required": false,
+      "Options": [
+        {
+          "Text": "Next",
+          "Destination": 124
+        }
+      ],
+      "HelpText": "This is optional.",
+      "X": 3030,
+      "Y": 30
+    },
+    {
+      "Id": 124,
+      "QuestionText": "What is your email address?",
+      "Type": "text",
+      "Required": false,
+      "Options": [
+        {
+          "Text": "Next",
+          "Destination": 125
+        }
+      ],
+      "HelpText": "If you have a MyAccount, provide your email and we can keep you updated on your report.",
+      "X": 3280,
+      "Y": 30
+    },
+    {
+      "Id": 125,
+      "QuestionText": "Please enter the postcode or address of the incident",
+      "Type": "address",
+      "Required": true,
+      "Options": [
+        {
+          "Text": "Next",
+          "Destination": 126
+        }
+      ],
+      "HelpText": null,
+      "X": 3530,
+      "Y": 30
+    },
+    {
+      "Id": 126,
+      "QuestionText": "Please Select the location of the incident",
+      "Type": "location",
+      "Required": true,
+      "Options": [
+        {
+          "Text": "Next",
+          "Destination": 130
+        }
+      ],
+      "HelpText": null,
+      "X": 3780,
+      "Y": 30
+    },
+    {
+      "Id": 130,
+      "QuestionText": "Thank you for submitting this report",
+      "Type": "end",
+      "Required": false,
+      "Options": null,
+      "HelpText": null,
+      "X": 4030,
+      "Y": 30
+    }
+  ],
+  "emailTo": ""
+}

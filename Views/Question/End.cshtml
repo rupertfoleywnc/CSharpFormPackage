@@ -26,9 +26,18 @@
         </div>
 
         <div class="nav-buttons">
+            <!-- TODO: Add JavaScript to call SendEmail endpoint with form responses when page loads -->
+            <!-- TODO: Display email confirmation message to user -->
             <form asp-controller="Question" asp-action="Restart" method="post">
                 <button type="submit" class="restart" style="width: 200px;">Make another report</button>
             </form>
         </div>
     </div>
 </div>
+
+<!-- TODO: Add script to automatically send email when end page loads -->
+<script>
+    // TODO: Implement automatic email sending on page load
+    // TODO: Call /Question/SendEmail with current form name and user answers
+    // TODO: Show success/error message to user
+</script>
