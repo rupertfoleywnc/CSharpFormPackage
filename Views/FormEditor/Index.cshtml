@@ -442,6 +442,12 @@
                         try {
                             const data = JSON.parse(e.target.result);
                             questions = data.questions || data.Questions || [];
+                            
+                            // Load email settings
+                            formEmail = data.emailTo || '';
+                            emailSubject = data.emailSubject || '';
+                            emailBody = data.emailBody || '';
+                            
                             // Position questions in flow order
                             if (questions.some(q => (!q.x && !q.X) && (!q.y && !q.Y))) {
                                 const positioned = new Set();
@@ -529,6 +535,12 @@
                 .then(response => response.json())
                 .then(data => {
                     questions = data.questions || data.Questions || [];
+                    
+                    // Load email settings
+                    formEmail = data.emailTo || '';
+                    emailSubject = data.emailSubject || '';
+                    emailBody = data.emailBody || '';
+                    
                     if (questions.some(q => (!q.x && !q.X) && (!q.y && !q.Y))) {
                         const positioned = new Set();
                         const levelY = {};
@@ -594,6 +606,12 @@
                         })
                         .then(data => {
                             questions = data.questions || data.Questions || [];
+                            
+                            // Load email settings
+                            formEmail = data.emailTo || '';
+                            emailSubject = data.emailSubject || '';
+                            emailBody = data.emailBody || '';
+                            
                             // Position questions in flow order
                             if (questions.some(q => (!q.x && !q.X) && (!q.y && !q.Y))) {
                                 const positioned = new Set();
