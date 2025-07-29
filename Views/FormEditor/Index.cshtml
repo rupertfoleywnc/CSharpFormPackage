@@ -44,6 +44,19 @@
         .option-item { display: flex; align-items: center; margin-bottom: 10px; }
         .option-item input { flex: 1; margin-right: 10px; }
         .option-item button { background: #dc3545; color: white; border: none; padding: 5px 10px; border-radius: 3px; }
+        
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); }
+        .modal-content { background-color: #fefefe; margin: 15% auto; padding: 20px; border: none; width: 400px; border-radius: 8px; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .close { color: #aaa; font-size: 28px; font-weight: bold; cursor: pointer; }
+        .close:hover { color: black; }
+        .form-list-item { padding: 10px; margin: 5px 0; background: #f8f9fa; border: 1px solid #ddd; border-radius: 5px; cursor: pointer; }
+        .form-list-item:hover { background: #e9ecef; }
+        
+        .notification { position: fixed; top: 20px; right: 20px; padding: 15px 20px; border-radius: 5px; color: white; z-index: 1001; opacity: 0; transition: opacity 0.3s; }
+        .notification.success { background: #28a745; }
+        .notification.error { background: #dc3545; }
+        .notification.show { opacity: 1; }
     </style>
 </head>
 <body>
@@ -61,8 +74,9 @@
             
             <h3>Actions</h3>
             <button class="btn-primary" onclick="saveForm()">Save Form</button>
+            <button class="btn-primary" onclick="saveAsForm()">Save As</button>
             <button class="btn-primary" onclick="loadForm()">Load File</button>
-            <button class="btn-primary" onclick="loadFromServer()">Load from Server</button>
+            <button class="btn-primary" onclick="showLoadMenu()">Load Form</button>
             <button class="btn-primary" onclick="showFormSettings()">Form Settings</button>
             <button class="btn-primary" onclick="clearCanvas()">Clear</button>
         </div>
@@ -85,6 +99,19 @@
         </div>
     </div>
 
+    <!-- Load Form Modal -->
+    <div id="loadFormModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Load Form</h3>
+                <span class="close" onclick="closeLoadModal()">&times;</span>
+            </div>
+            <div id="formList">
+                Loading forms...
+            </div>
+        </div>
+    </div>
+
     <script>
         let questions = [];
         let selectedQuestion = null;
@@ -97,6 +124,7 @@
         let primaryColor = '#007bff';
         let backgroundColor = '#ffffff';
         let textColor = '#333333';
+        let currentFormName = '';
 
         // Drag and drop functionality
         document.querySelectorAll('.tool-item').forEach(item => {
@@ -412,7 +440,10 @@
         }
 
         function saveForm() {
-            const title = prompt('Enter form title:');
+            let title = currentFormName;
+            if (!title) {
+                title = prompt('Enter form title:');
+            }
             if (title && title.trim()) {
                 console.log('Questions before save:', questions);
                 const formData = {
@@ -430,21 +461,26 @@
                 fetch('/FormEditor/SaveForm', {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json',
+                        'Content-Type': 'application/json'
                     },
                     body: JSON.stringify(formData)
                 })
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
-                        alert('Form saved as ' + data.fileName);
+                        currentFormName = title.trim();
+                        // Force reload the form to get updated data from file
+                        setTimeout(() => {
+                            loadFromServer(currentFormName);
+                        }, 100);
+                        showNotification('Form saved as ' + data.fileName);
                     } else {
-                        alert('Error saving form: ' + data.error);
+                        showNotification('Error saving form: ' + data.error, 'error');
                     }
                 })
                 .catch(error => {
                     console.error('Error:', error);
-                    alert('Error saving form');
+                    showNotification('Error saving form', 'error');
                 });
             }
         }
@@ -517,7 +553,7 @@
                             nextId = questions.length > 0 ? Math.max(...questions.map(q => q.id), 0) + 1 : 0;
                             refreshCanvas();
                         } catch (error) {
-                            alert('Error loading file: ' + error.message);
+                            showNotification('Error loading file: ' + error.message, 'error');
                         }
                     };
                     reader.readAsText(file);
@@ -537,8 +573,12 @@
             // Apply theme changes
             applyTheme();
             
-            // TODO: Validate email format before saving
-            alert('Settings saved');
+            // Call saveForm to persist settings to file
+            if (currentFormName) {
+                saveForm();
+            } else {
+                showNotification('Settings saved (no form loaded)');
+            }
         }
 
         function applyTheme() {
@@ -549,6 +589,96 @@
 
         function clearFormSettings() {
             document.getElementById('property-form').innerHTML = '<p>Select a question to edit its properties</p>';
+        }
+
+        function saveAsForm() {
+            const title = prompt('Enter new form title:');
+            if (title && title.trim()) {
+                console.log('Questions before save:', questions);
+                const formData = {
+                    title: title.trim(),
+                    questions: questions,
+                    emailTo: formEmail || '',
+                    emailSubject: emailSubject || '',
+                    emailBody: emailBody || '',
+                    primaryColor: primaryColor,
+                    backgroundColor: backgroundColor,
+                    textColor: textColor
+                };
+                console.log('Form data to save:', formData);
+
+                fetch('/FormEditor/SaveForm', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                    },
+                    body: JSON.stringify(formData)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        currentFormName = title.trim();
+                        // Force reload the form to get updated data from file
+                        setTimeout(() => {
+                            loadFromServer(currentFormName);
+                        }, 100);
+                        showNotification('Form saved as new form successfully!');
+                    } else {
+                        showNotification('Error saving form: ' + data.error, 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showNotification('Error saving form', 'error');
+                });
+            }
+        }
+
+        function showLoadMenu() {
+            document.getElementById('loadFormModal').style.display = 'block';
+            
+            fetch('/FormEditor/GetFormList')
+            .then(response => response.json())
+            .then(data => {
+                const formList = document.getElementById('formList');
+                if (data.success && data.files.length > 0) {
+                    let html = '';
+                    data.files.forEach(file => {
+                        html += `<div class="form-list-item" onclick="selectForm('${file}')">${file}</div>`;
+                    });
+                    formList.innerHTML = html;
+                } else {
+                    formList.innerHTML = '<p>No forms found</p>';
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                document.getElementById('formList').innerHTML = '<p>Error loading form list</p>';
+            });
+        }
+        
+        function selectForm(formName) {
+            closeLoadModal();
+            loadFromServer(formName);
+        }
+        
+        function closeLoadModal() {
+            document.getElementById('loadFormModal').style.display = 'none';
+        }
+        
+        function showNotification(message, type = 'success') {
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => notification.classList.add('show'), 100);
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+                setTimeout(() => document.body.removeChild(notification), 300);
+            }, 5000);
         }
 
         function clearCanvas() {
@@ -562,6 +692,7 @@
                 primaryColor = '#007bff';
                 backgroundColor = '#ffffff';
                 textColor = '#333333';
+                currentFormName = '';
                 applyTheme();
                 refreshCanvas();
                 document.getElementById('property-form').innerHTML = '<p>Select a question to edit its properties</p>';
@@ -631,97 +762,97 @@
                         });
                     }
                     nextId = questions.length > 0 ? Math.max(...questions.map(q => q.id || q.Id), 0) + 1 : 0;
+                    currentFormName = loadForm;
                     refreshCanvas();
                 })
                 .catch(error => console.error('Error loading form:', error));
             }
         });
 
-        function loadFromServer() {
-            fetch('/FormEditor/GetFormList')
-            .then(response => response.json())
-            .then(data => {
-                if (data.success && data.files.length > 0) {
-                    const fileList = data.files.join('\n');
-                    const filename = prompt(`Available forms:\n${fileList}\n\nEnter filename to load:`);
-                    if (filename) {
-                        fetch(`/data/${filename}FormFlow.json`)
-                        .then(response => {
-                            if (!response.ok) {
-                                throw new Error('File not found');
-                            }
-                            return response.json();
-                        })
-                        .then(data => {
-                            questions = data.questions || data.Questions || [];
+        function loadFromServer(formName) {
+            if (!formName) {
+                formName = prompt('Enter form name to load:');
+            }
+            if (formName) {
+                fetch(`/data/${formName}FormFlow.json`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('File not found');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    questions = data.questions || data.Questions || [];
+                    
+                    // Load email settings
+                    formEmail = data.emailTo || '';
+                    emailSubject = data.emailSubject || '';
+                    emailBody = data.emailBody || '';
+                    
+                    // Load theme settings
+                    primaryColor = data.primaryColor || '#007bff';
+                    backgroundColor = data.backgroundColor || '#ffffff';
+                    textColor = data.textColor || '#333333';
+                    applyTheme();
+                    
+                    // Position questions in flow order
+                    if (questions.some(q => (!q.x && !q.X) && (!q.y && !q.Y))) {
+                        const positioned = new Set();
+                        const levelY = {};
+                        
+                        function positionFlow(qId, level = 0) {
+                            const q = questions.find(qu => qu.id == qId);
+                            if (!q || positioned.has(qId)) return;
                             
-                            // Load email settings
-                            formEmail = data.emailTo || '';
-                            emailSubject = data.emailSubject || '';
-                            emailBody = data.emailBody || '';
+                            if (!levelY[level]) levelY[level] = 30;
                             
-                            // Load theme settings
-                            primaryColor = data.primaryColor || '#007bff';
-                            backgroundColor = data.backgroundColor || '#ffffff';
-                            textColor = data.textColor || '#333333';
-                            applyTheme();
+                            q.x = 30 + level * 250;
+                            q.y = levelY[level];
+                            positioned.add(qId);
+                            levelY[level] += 150;
                             
-                            // Position questions in flow order
-                            if (questions.some(q => (!q.x && !q.X) && (!q.y && !q.Y))) {
-                                const positioned = new Set();
-                                const levelY = {};
-                                
-                                function positionFlow(qId, level = 0) {
-                                    const q = questions.find(qu => qu.id == qId);
-                                    if (!q || positioned.has(qId)) return;
-                                    
-                                    if (!levelY[level]) levelY[level] = 30;
-                                    
-                                    q.x = 30 + level * 250;
-                                    q.y = levelY[level];
-                                    positioned.add(qId);
-                                    levelY[level] += 150;
-                                    
-                                    if (q.options) {
-                                        q.options.forEach(opt => {
-                                            if (opt.destination) positionFlow(opt.destination, level + 1);
-                                        });
-                                    }
-                                }
-                                
-                                // Start with first question (lowest ID)
-                                const startQ = questions.reduce((min, q) => q.id < min.id ? q : min);
-                                positionFlow(startQ.id);
-                                
-                                // Position any remaining questions in a compact grid
-                                let remainingX = 30, remainingY = 30;
-                                questions.forEach((q) => {
-                                    if (!positioned.has(q.id)) {
-                                        q.x = remainingX;
-                                        q.y = remainingY;
-                                        remainingY += 150;
-                                        if (remainingY > 500) {
-                                            remainingY = 30;
-                                            remainingX += 250;
-                                        }
-                                    }
+                            if (q.options) {
+                                q.options.forEach(opt => {
+                                    if (opt.destination) positionFlow(opt.destination, level + 1);
                                 });
                             }
-                            nextId = questions.length > 0 ? Math.max(...questions.map(q => q.id), 0) + 1 : 0;
-                            refreshCanvas();
-                            alert('Form loaded successfully');
-                        })
-                        .catch(error => {
-                            alert('Error loading form: ' + error.message);
+                        }
+                        
+                        // Start with first question (lowest ID)
+                        const startQ = questions.reduce((min, q) => q.id < min.id ? q : min);
+                        positionFlow(startQ.id);
+                        
+                        // Position any remaining questions in a compact grid
+                        let remainingX = 30, remainingY = 30;
+                        questions.forEach((q) => {
+                            if (!positioned.has(q.id)) {
+                                q.x = remainingX;
+                                q.y = remainingY;
+                                remainingY += 150;
+                                if (remainingY > 500) {
+                                    remainingY = 30;
+                                    remainingX += 250;
+                                }
+                            }
                         });
                     }
-                } else {
-                    alert('No forms found on server');
-                }
-            })
-            .catch(error => {
-                alert('Error getting form list: ' + error.message);
-            });
+                    nextId = questions.length > 0 ? Math.max(...questions.map(q => q.id), 0) + 1 : 0;
+                    currentFormName = formName;
+                    refreshCanvas();
+                    showNotification('Form loaded successfully');
+                })
+                .catch(error => {
+                    showNotification('Error loading form: ' + error.message, 'error');
+                });
+            }
+        }
+        
+        // Close modal when clicking outside of it
+        window.onclick = function(event) {
+            const modal = document.getElementById('loadFormModal');
+            if (event.target == modal) {
+                closeLoadModal();
+            }
         }
     </script>
 </body>

@@ -20,13 +20,13 @@ namespace CSharpFormPackage.Services
     {
         private readonly ILogger<QuestionService> _logger;
         private readonly IWebHostEnvironment _webHostEnvironment;
-        private readonly List<Question> _questions;
+        private List<Question> _questions;
 
         public QuestionService(ILogger<QuestionService> logger, IWebHostEnvironment webHostEnvironment)
         {
             _logger = logger;
             _webHostEnvironment = webHostEnvironment;
-            _questions = LoadQuestions();
+            _questions = new List<Question>();
         }
 
         public Question GetQuestionById(int id)
@@ -59,8 +59,7 @@ namespace CSharpFormPackage.Services
                         PropertyNameCaseInsensitive = true
                     };
                     var questionData = JsonSerializer.Deserialize<QuestionData>(jsonContent, options);
-                    _questions.Clear();
-                    _questions.AddRange(questionData?.Questions ?? new List<Question>());
+                    _questions = new List<Question>(questionData?.Questions ?? new List<Question>());
                 }
             }
             catch (Exception ex)
