@@ -341,6 +341,227 @@
             drawConnections();
         }
 
+        function findPath(source, target, allQuestions) {
+            const boxWidth = 230, boxHeight = 130, margin = 30;
+            
+            const sourceX = source.x || source.X;
+            const sourceY = source.y || source.Y;
+            const targetX = target.x || target.X;
+            const targetY = target.y || target.Y;
+            
+            // Calculate connection points on box edges
+            const sourceCenterX = sourceX + boxWidth / 2;
+            const sourceCenterY = sourceY + boxHeight / 2;
+            const targetCenterX = targetX + boxWidth / 2;
+            const targetCenterY = targetY + boxHeight / 2;
+            
+            const dx = targetCenterX - sourceCenterX;
+            const dy = targetCenterY - sourceCenterY;
+            
+            // Calculate connection points on box edges based on direction
+            const angle = Math.atan2(dy, dx);
+            
+            // Source connection point
+            let startX, startY;
+            if (Math.abs(dx) > Math.abs(dy)) {
+                startX = dx > 0 ? sourceX + boxWidth : sourceX;
+                startY = sourceCenterY;
+            } else {
+                startX = sourceCenterX;
+                startY = dy > 0 ? sourceY + boxHeight : sourceY;
+            }
+            
+            // Target connection point - opposite side
+            let endX, endY;
+            if (Math.abs(dx) > Math.abs(dy)) {
+                endX = dx > 0 ? targetX : targetX + boxWidth;
+                endY = targetCenterY;
+            } else {
+                endX = targetCenterX;
+                endY = dy > 0 ? targetY : targetY + boxHeight;
+            }
+            
+            
+            const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            path.setAttribute('stroke', 'var(--primary-color)');
+            path.setAttribute('stroke-width', '2');
+            path.setAttribute('fill', 'none');
+            path.setAttribute('marker-end', 'url(#arrowhead)');
+            
+            // Check if direct path intersects any obstacles (with clearance)
+            const obstacles = allQuestions.filter(q => q !== source && q !== target);
+            const clearance = 20;
+            const pathIntersects = obstacles.some(obs => {
+                const obsX = obs.x || obs.X;
+                const obsY = obs.y || obs.Y;
+                return lineIntersectsRect(startX, startY, endX, endY, 
+                    obsX - clearance, obsY - clearance, boxWidth + 2*clearance, boxHeight + 2*clearance);
+            });
+            
+            if (!pathIntersects) {
+                // Direct curved path
+                const controlOffset = Math.min(100, Math.sqrt(dx*dx + dy*dy) / 3);
+                
+                let cp1X, cp1Y, cp2X, cp2Y;
+                if (Math.abs(dx) > Math.abs(dy)) {
+                    cp1X = startX + (dx > 0 ? controlOffset : -controlOffset);
+                    cp1Y = startY;
+                    cp2X = endX + (dx > 0 ? -controlOffset : controlOffset);
+                    cp2Y = endY;
+                } else {
+                    cp1X = startX;
+                    cp1Y = startY + (dy > 0 ? controlOffset : -controlOffset);
+                    cp2X = endX;
+                    cp2Y = endY + (dy > 0 ? -controlOffset : controlOffset);
+                }
+                
+                path.setAttribute('d', `M ${startX} ${startY} C ${cp1X} ${cp1Y}, ${cp2X} ${cp2Y}, ${endX} ${endY}`);
+            } else {
+                // Route around obstacles with curves
+                const waypoint = findBestWaypoint(startX, startY, endX, endY, obstacles, boxWidth, boxHeight, margin);
+                
+                if (waypoint) {
+                    // Create smooth curved path through waypoint
+                    const cp1X = startX + (waypoint.x - startX) * 0.3;
+                    const cp1Y = startY + (waypoint.y - startY) * 0.3;
+                    const cp2X = waypoint.x + (startX - waypoint.x) * 0.2;
+                    const cp2Y = waypoint.y + (startY - waypoint.y) * 0.2;
+                    const cp3X = waypoint.x + (endX - waypoint.x) * 0.2;
+                    const cp3Y = waypoint.y + (endY - waypoint.y) * 0.2;
+                    const cp4X = endX + (waypoint.x - endX) * 0.3;
+                    const cp4Y = endY + (waypoint.y - endY) * 0.3;
+                    
+                    path.setAttribute('d', `M ${startX} ${startY} C ${cp1X} ${cp1Y}, ${cp2X} ${cp2Y}, ${waypoint.x} ${waypoint.y} C ${cp3X} ${cp3Y}, ${cp4X} ${cp4Y}, ${endX} ${endY}`);
+                } else {
+                    // Fallback to direct curve if no waypoint found
+                    const controlOffset = Math.min(100, Math.sqrt(dx*dx + dy*dy) / 3);
+                    const cp1X = startX + (dx > 0 ? controlOffset : -controlOffset);
+                    const cp1Y = startY;
+                    const cp2X = endX + (dx > 0 ? -controlOffset : controlOffset);
+                    const cp2Y = endY;
+                    path.setAttribute('d', `M ${startX} ${startY} C ${cp1X} ${cp1Y}, ${cp2X} ${cp2Y}, ${endX} ${endY}`);
+                }
+            }
+            
+            return path;
+        }
+        
+        function lineIntersectsRect(x1, y1, x2, y2, rx, ry, rw, rh) {
+            return (x1 >= rx && x1 <= rx + rw && y1 >= ry && y1 <= ry + rh) ||
+                   (x2 >= rx && x2 <= rx + rw && y2 >= ry && y2 <= ry + rh) ||
+                   lineIntersectsLine(x1, y1, x2, y2, rx, ry, rx + rw, ry) ||
+                   lineIntersectsLine(x1, y1, x2, y2, rx + rw, ry, rx + rw, ry + rh) ||
+                   lineIntersectsLine(x1, y1, x2, y2, rx + rw, ry + rh, rx, ry + rh) ||
+                   lineIntersectsLine(x1, y1, x2, y2, rx, ry + rh, rx, ry);
+        }
+        
+        function lineIntersectsLine(x1, y1, x2, y2, x3, y3, x4, y4) {
+            const denom = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4);
+            if (denom === 0) return false;
+            const t = ((x1 - x3) * (y3 - y4) - (y1 - y3) * (x3 - x4)) / denom;
+            const u = -((x1 - x2) * (y1 - y3) - (y1 - y2) * (x1 - x3)) / denom;
+            return t >= 0 && t <= 1 && u >= 0 && u <= 1;
+        }
+        
+        function findBestWaypoint(startX, startY, endX, endY, obstacles, boxWidth, boxHeight, margin) {
+            let allWaypoints = [];
+            const clearance = 20;
+            
+            // Collect waypoints around all intersecting obstacles
+            for (const obs of obstacles) {
+                const obsX = obs.x || obs.X;
+                const obsY = obs.y || obs.Y;
+                
+                if (lineIntersectsRect(startX, startY, endX, endY, 
+                    obsX - clearance, obsY - clearance, boxWidth + 2*clearance, boxHeight + 2*clearance)) {
+                    const obsCenterX = obsX + boxWidth / 2;
+                    const obsCenterY = obsY + boxHeight / 2;
+                    const waypointClearance = 60;
+                    
+                    // Check for neighboring obstacles to prefer better routing
+                    const hasLeftNeighbor = obstacles.some(n => n !== obs && 
+                        Math.abs((n.x || n.X) + boxWidth - obsX) < 50 && 
+                        Math.abs((n.y || n.Y) + boxHeight/2 - obsCenterY) < boxHeight);
+                    const hasRightNeighbor = obstacles.some(n => n !== obs && 
+                        Math.abs((n.x || n.X) - (obsX + boxWidth)) < 50 && 
+                        Math.abs((n.y || n.Y) + boxHeight/2 - obsCenterY) < boxHeight);
+                    const hasTopNeighbor = obstacles.some(n => n !== obs && 
+                        Math.abs((n.y || n.Y) + boxHeight - obsY) < 50 && 
+                        Math.abs((n.x || n.X) + boxWidth/2 - obsCenterX) < boxWidth);
+                    const hasBottomNeighbor = obstacles.some(n => n !== obs && 
+                        Math.abs((n.y || n.Y) - (obsY + boxHeight)) < 50 && 
+                        Math.abs((n.x || n.X) + boxWidth/2 - obsCenterX) < boxWidth);
+                    
+                    // Prefer left/right if has top/bottom neighbors, prefer top/bottom if has left/right neighbors
+                    if (hasTopNeighbor || hasBottomNeighbor) {
+                        // Prefer horizontal routing
+                        allWaypoints.push(
+                            {x: obsX - waypointClearance, y: obsCenterY, priority: 1},
+                            {x: obsX + boxWidth + waypointClearance, y: obsCenterY, priority: 1}
+                        );
+                        if (!hasTopNeighbor) allWaypoints.push({x: obsCenterX, y: obsY - waypointClearance, priority: 2});
+                        if (!hasBottomNeighbor) allWaypoints.push({x: obsCenterX, y: obsY + boxHeight + waypointClearance, priority: 2});
+                    } else if (hasLeftNeighbor || hasRightNeighbor) {
+                        // Prefer vertical routing
+                        allWaypoints.push(
+                            {x: obsCenterX, y: obsY - waypointClearance, priority: 1},
+                            {x: obsCenterX, y: obsY + boxHeight + waypointClearance, priority: 1}
+                        );
+                        if (!hasLeftNeighbor) allWaypoints.push({x: obsX - waypointClearance, y: obsCenterY, priority: 2});
+                        if (!hasRightNeighbor) allWaypoints.push({x: obsX + boxWidth + waypointClearance, y: obsCenterY, priority: 2});
+                    } else {
+                        // No neighbors, add all waypoints
+                        allWaypoints.push(
+                            {x: obsX - waypointClearance, y: obsCenterY, priority: 1},
+                            {x: obsX + boxWidth + waypointClearance, y: obsCenterY, priority: 1},
+                            {x: obsCenterX, y: obsY - waypointClearance, priority: 1},
+                            {x: obsCenterX, y: obsY + boxHeight + waypointClearance, priority: 1}
+                        );
+                    }
+                }
+            }
+            
+            if (allWaypoints.length === 0) return null;
+            
+            // Find the best waypoint that doesn't intersect other obstacles
+            let bestWaypoint = null;
+            let shortestDistance = Infinity;
+            
+            for (const wp of allWaypoints) {
+                // Check if paths to/from this waypoint intersect any obstacles (with clearance)
+                let pathClear = true;
+                for (const obs of obstacles) {
+                    const obsX = obs.x || obs.X;
+                    const obsY = obs.y || obs.Y;
+                    
+                    if (lineIntersectsRect(startX, startY, wp.x, wp.y, 
+                        obsX - clearance, obsY - clearance, boxWidth + 2*clearance, boxHeight + 2*clearance) ||
+                        lineIntersectsRect(wp.x, wp.y, endX, endY, 
+                        obsX - clearance, obsY - clearance, boxWidth + 2*clearance, boxHeight + 2*clearance)) {
+                        pathClear = false;
+                        break;
+                    }
+                }
+                
+                if (pathClear) {
+                    const d1 = Math.sqrt((wp.x - startX)**2 + (wp.y - startY)**2);
+                    const d2 = Math.sqrt((endX - wp.x)**2 + (endY - wp.y)**2);
+                    const totalDistance = d1 + d2;
+                    const priority = wp.priority || 1;
+                    const weightedDistance = totalDistance * (priority === 1 ? 1 : 1.5);
+                    
+                    if (weightedDistance < shortestDistance) {
+                        shortestDistance = weightedDistance;
+                        bestWaypoint = wp;
+                    }
+                }
+            }
+            
+            return bestWaypoint;
+        }
+        
+
+
         function drawConnections() {
             const svg = document.getElementById('connections');
             const canvas = document.getElementById('canvas');
@@ -380,15 +601,10 @@
                             if (dest) {
                                 const target = questions.find(q => (q.id || q.Id) == dest);
                                 if (target) {
-                                    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-                                    line.setAttribute('x1', (question.x || question.X) + 200);
-                                    line.setAttribute('y1', (question.y || question.Y) + 50);
-                                    line.setAttribute('x2', target.x || target.X);
-                                    line.setAttribute('y2', (target.y || target.Y) + 50);
-                                    line.setAttribute('stroke', 'var(--primary-color)');
-                                    line.setAttribute('stroke-width', '2');
-                                    line.setAttribute('marker-end', 'url(#arrowhead)');
-                                    svg.appendChild(line);
+                                    const path = findPath(question, target, questions);
+                                    if (path) {
+                                        svg.appendChild(path);
+                                    }
                                 }
                             }
                         });
